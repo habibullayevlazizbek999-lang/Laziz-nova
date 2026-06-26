@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA — Smartfonlar do'koni</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#0F1124;
+  --surface:#181B33;
+  --ink:#F2F3FA;
+  --ink-soft:#9296B5;
+  --line:#2A2D4D;
+  --coral:#FF5D72;
+  --green:#2BD18C;
+  --amber:#FFC857;
+  --navy-deep:#070815;
+  --radius:18px;
+  --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.5);
+  --shadow-lift:0 4px 10px rgba(0,0,0,0.35), 0 24px 48px -16px rgba(0,0,0,0.6);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255,107,91,0.22), transparent 38%),
+    radial-gradient(circle at 88% 18%, rgba(61,220,151,0.16), transparent 42%),
+    radial-gradient(circle at 70% 78%, rgba(124,108,255,0.20), transparent 45%),
+    radial-gradient(circle at 15% 85%, rgba(255,193,94,0.12), transparent 40%),
+    var(--paper);
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+}
+h1,h2,h3,.display{font-family:'Sora',sans-serif;}
+.mono{font-family:'JetBrains Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+img{max-width:100%;display:block;}
+::selection{background:var(--coral);color:#fff;}
+
+/* ===== STATUS BAR (signature: a real phone status bar atop the page) ===== */
+.statusbar{
+  background:var(--navy-deep);color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 5%;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.5px;
+}
+.statusbar .sb-left{display:flex;align-items:center;gap:6px;opacity:0.9;}
+.statusbar .sb-dots{display:flex;gap:3px;}
+.statusbar .sb-dots span{width:3px;height:3px;border-radius:50%;background:#fff;opacity:0.5;}
+.statusbar .sb-dots span:nth-child(1){opacity:1;}
+.statusbar .sb-dots span:nth-child(2){opacity:0.8;}
+.statusbar .sb-right{display:flex;align-items:center;gap:8px;opacity:0.9;}
+.sb-battery{
+  width:18px;height:9px;border:1px solid #fff;border-radius:2px;position:relative;opacity:0.9;
+}
+.sb-battery::after{content:"";position:absolute;right:-3px;top:2px;width:2px;height:3px;background:#fff;border-radius:0 1px 1px 0;}
+.sb-battery .fill{position:absolute;top:1px;left:1px;bottom:1px;width:70%;background:var(--green);border-radius:1px;}
+
+/* ===== HEADER ===== */
+header{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 5%;gap:18px;
+  background:rgba(15,17,36,0.82);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.logo{font-family:'Sora';font-weight:800;font-size:21px;letter-spacing:-0.3px;display:flex;align-items:center;gap:8px;}
+.logo .dot{width:9px;height:9px;border-radius:50%;background:var(--coral);display:inline-block;}
+nav{display:flex;gap:26px;align-items:center;}
+nav a{font-size:14px;color:var(--ink-soft);font-weight:500;transition:color .2s;}
+nav a:hover{color:var(--ink);}
+.search-wrap{flex:1;max-width:340px;}
+.search-wrap input{
+  width:100%;padding:10px 16px;border-radius:999px;border:1.5px solid var(--line);
+  background:var(--surface);color:var(--ink);font-size:14px;
+}
+.search-wrap input:focus{outline:none;border-color:var(--coral);}
+.search-wrap input::placeholder{color:#5A5E80;}
+.cart-btn{
+  position:relative;background:var(--coral);border:none;
+  border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;
+  display:flex;align-items:center;gap:8px;cursor:pointer;color:#fff;
+  transition:transform .15s;
+}
+.cart-btn:hover{transform:translateY(-1px);}
+.cart-count{
+  background:var(--coral);color:#fff;font-size:11px;font-weight:700;
+  border-radius:999px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 5px;
+}
+
+/* ===== HERO ===== */
+.hero{
+  position:relative;overflow:hidden;
+  padding:96px 5% 72px;
+  display:grid;grid-template-columns:1.05fr 0.95fr;gap:40px;align-items:center;
+}
+.hero::before{
+  content:"";position:absolute;top:-160px;left:-120px;width:480px;height:480px;border-radius:50%;
+  background:radial-gradient(circle, rgba(255,107,91,0.16), transparent 65%);pointer-events:none;
+}
+.hero::after{
+  content:"";position:absolute;bottom:-200px;right:-140px;width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle, rgba(61,220,151,0.13), transparent 65%);pointer-events:none;
+}
+.eyebrow{
+  color:var(--green);font-size:12.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;margin-bottom:20px;position:relative;z-index:1;
+}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);}
+.hero h1{font-size:clamp(38px,5.4vw,64px);line-height:1.02;font-weight:800;letter-spacing:-2px;color:var(--ink);position:relative;z-index:1;}
+.hero h1 em{font-style:normal;color:var(--coral);position:relative;}
+.hero p{color:var(--ink-soft);font-size:16.5px;margin-top:20px;max-width:440px;line-height:1.7;position:relative;z-index:1;}
+.hero-cta{display:flex;gap:14px;margin-top:34px;position:relative;z-index:1;}
+.btn{
+  padding:13px 26px;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:transform .15s, box-shadow .15s;
+}
+.btn-primary{background:linear-gradient(135deg,var(--coral),var(--amber));color:#1a1024;box-shadow:0 8px 24px -6px rgba(255,107,91,0.45);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 28px -6px rgba(255,107,91,0.55);}
+.btn-ghost{background:rgba(255,255,255,0.04);backdrop-filter:blur(10px);border:1.5px solid var(--line);color:var(--ink);}
+.btn-ghost:hover{border-color:var(--ink-soft);}
+
+/* ===== HERO VISUAL: a real lock screen, not a gradient blob ===== */
+.hero-visual{position:relative;display:flex;justify-content:center;}
+.phone-mock{
+  width:240px;height:480px;border-radius:42px;
+  background:linear-gradient(165deg,#2B1F4D,#0C0E1F 60%);
+  border:1px solid rgba(255,255,255,0.1);
+  position:relative;overflow:hidden;
+  box-shadow:var(--shadow-lift), 0 0 80px -20px rgba(255,107,91,0.35);
+  animation:float 6s ease-in-out infinite;
+  display:flex;flex-direction:column;align-items:center;
+  padding-top:70px;color:#fff;
+}
+.phone-mock::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 25% 12%, rgba(255,107,91,0.45), transparent 50%),
+             radial-gradient(circle at 80% 30%, rgba(124,108,255,0.4), transparent 50%),
+             radial-gradient(circle at 60% 90%, rgba(61,220,151,0.3), transparent 50%);
+  filter:blur(2px);
+}
+.phone-mock::after{
+  content:"";position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  width:56px;height:6px;border-radius:4px;background:rgba(255,255,255,0.18);
+}
+.lock-time{font-family:'Sora';font-weight:700;font-size:52px;letter-spacing:-1px;position:relative;z-index:1;}
+.lock-date{font-size:13px;color:rgba(255,255,255,0.65);margin-top:6px;position:relative;z-index:1;}
+.lock-hint{
+  margin-top:auto;margin-bottom:34px;font-size:10px;color:rgba(255,255,255,0.5);
+  letter-spacing:0.4px;position:relative;z-index:1;
+  text-align:center;padding:0 18px;white-space:nowrap;
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+/* ===== SECTION ===== */
+.section{padding:64px 5%;}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:30px;flex-wrap:wrap;gap:12px;}
+.section-head h2{font-size:27px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;}
+.filters{display:flex;gap:9px;flex-wrap:wrap;}
+.filter-chip{
+  background:var(--surface);border:1.5px solid var(--line);border-radius:999px;
+  padding:7px 16px;font-size:13px;font-weight:500;cursor:pointer;color:var(--ink-soft);transition:all .15s;
+}
+.filter-chip.active{background:var(--coral);color:#fff;border-color:var(--coral);font-weight:600;}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:18px;}
+.product-card{
+  background:rgba(27,31,61,0.55);backdrop-filter:blur(16px);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px;position:relative;overflow:hidden;transition:border-color .2s, transform .2s, box-shadow .2s;
+  box-shadow:var(--shadow);
+}
+.product-card::before{
+  content:"";position:absolute;top:0;left:14px;right:14px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);
+}
+.product-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lift);border-color:#3D4170;}
+
+/* Sale/New badge styled as a phone notification dot */
+.fav-btn{
+  position:absolute;top:8px;right:8px;background:rgba(12,14,28,0.55);backdrop-filter:blur(6px);border:none;
+  width:32px;height:32px;border-radius:10px;font-size:15px;cursor:pointer;z-index:5;
+  display:flex;align-items:center;justify-content:center;transition:transform .15s, background .15s;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.fav-btn:hover{transform:scale(1.1);background:rgba(12,14,28,0.75);}
+.p-rating{
+  display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft);margin-bottom:12px;
+}
+.p-rating .stars{color:var(--amber);letter-spacing:1px;font-size:11px;}
+.p-rating .reviews-count{color:var(--ink-soft);}
+.admin-toggle-btn{
+  background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);
+  font-size:12px;padding:7px 14px;border-radius:999px;cursor:pointer;font-weight:600;
+}
+.admin-toggle-btn.active{background:var(--amber);color:#1A1300;border-color:var(--amber);}
+.admin-img-upload{
+  display:block;text-align:center;font-size:12px;font-weight:600;color:var(--amber);
+  background:rgba(255,193,94,0.08);border:1.5px dashed var(--amber);border-radius:10px;
+  padding:8px;margin-bottom:10px;cursor:pointer;transition:background .15s;
+}
+.admin-img-upload:hover{background:rgba(255,193,94,0.16);}
+.admin-name-input{
+  width:100%;margin-bottom:3px;padding:7px 9px;border-radius:8px;border:1.5px solid var(--amber);
+  background:rgba(255,193,94,0.08);color:var(--ink);font-family:'Sora';font-size:15px;font-weight:700;
+}
+.admin-name-input:focus{outline:none;box-shadow:0 0 0 2px rgba(255,193,94,0.25);}
+.admin-price-input{
+  width:120px;padding:7px 9px;border-radius:8px;border:1.5px solid var(--amber);
+  background:rgba(255,193,94,0.08);color:var(--ink);font-family:'JetBrains Mono';font-size:14px;font-weight:700;
+}
+.admin-price-input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 2px rgba(255,193,94,0.25);}
+.filter-chip.fav-filter.active{background:var(--coral);color:#fff;border-color:var(--coral);}
+.badge{
+  position:absolute;top:54px;right:16px;font-size:10px;font-weight:700;
+  padding:4px 9px 4px 7px;border-radius:999px;background:rgba(31,174,110,0.12);color:var(--green);
+  display:flex;align-items:center;gap:5px;z-index:1;
+}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green);}
+.badge.sale{background:rgba(255,79,100,0.1);color:var(--coral);}
+.badge.sale::before{background:var(--coral);}
+
+.p-visual{
+  height:190px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;
+  background:radial-gradient(circle at 50% 30%, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border-radius:12px;border:1px solid rgba(255,255,255,0.06);cursor:pointer;
+}
+.p-title{font-size:16px;font-weight:700;margin-bottom:3px;color:var(--ink);letter-spacing:-0.2px;}
+.p-spec{font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
+.p-bottom{display:flex;justify-content:space-between;align-items:center;}
+.p-price{font-family:'JetBrains Mono';font-weight:700;font-size:16px;color:var(--ink);}
+.p-price .old{text-decoration:line-through;color:#B3B6C8;font-size:12px;font-weight:500;margin-right:6px;}
+.add-btn{
+  background:var(--paper);border:1.5px solid var(--line);color:var(--ink);
+  width:36px;height:36px;border-radius:10px;font-size:18px;cursor:pointer;transition:all .15s;
+}
+.add-btn:hover{background:var(--coral);color:#fff;border-color:var(--coral);}
+.variant-select{
+  width:100%;margin-bottom:12px;padding:8px 10px;border-radius:8px;
+  background:var(--paper);border:1.5px solid var(--line);color:var(--ink);font-size:13px;cursor:pointer;font-weight:500;
+}
+.variant-select:focus{outline:none;border-color:var(--coral);}
+
+/* ===== Brand mockups: app-icon style squircle with brand initial ===== */
+.mini-phone{
+  width:74px;height:74px;border-radius:20px;background:var(--bg,#1B1F3B);
+  position:relative;flex-shrink:0;box-shadow:0 6px 14px -4px rgba(17,20,43,0.25);
+}
+.mini-phone.small{width:42px;height:42px;border-radius:13px;}
+.brand-logo{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:'Sora',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.3px;padding:0 8px;line-height:1.15;color:#fff;
+}
+.brand-logo.apple-logo{font-style:italic;}
+.mini-phone.small .brand-logo{font-size:8px;}
+
+/* ===== TRUST STRIP ===== */
+.trust{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:var(--line);
+}
+.trust-item{
+  text-align:left;background:var(--surface);padding:30px 28px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.trust-item .num{font-family:'JetBrains Mono';font-weight:700;font-size:26px;color:var(--coral);letter-spacing:-1px;}
+.trust-item .label{font-size:13px;color:var(--ink-soft);}
+
+footer{
+  padding:44px 5% 36px;color:var(--ink-soft);font-size:13.5px;
+  display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;
+  border-top:1px solid var(--line);
+}
+footer .f-brand{font-family:'Sora';font-weight:700;color:var(--ink);font-size:15px;}
+footer .f-brand .dot{color:var(--coral);}
+
+/* ===== CART DRAWER ===== */
+.overlay{
+  position:fixed;inset:0;background:rgba(12,14,31,0.45);opacity:0;pointer-events:none;
+  transition:opacity .25s;z-index:90;
+}
+.overlay.open{opacity:1;pointer-events:auto;}
+.drawer{
+  position:fixed;top:0;right:-420px;width:400px;max-width:92vw;height:100%;
+  background:rgba(19,22,43,0.92);backdrop-filter:blur(20px);border-left:1px solid var(--line);
+  z-index:100;transition:right .3s ease;display:flex;flex-direction:column;
+}
+.drawer.open{right:0;}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:22px;border-bottom:1px solid var(--line);}
+.drawer-head h3{font-size:18px;color:var(--ink);}
+.close-btn{background:none;border:none;color:var(--ink-soft);font-size:22px;cursor:pointer;}
+.cart-items{flex:1;overflow-y:auto;padding:18px 22px;}
+.cart-row{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);}
+.cart-row .mini-phone{flex-shrink:0;}
+.cart-info{flex:1;}
+.cart-info .name{font-size:14px;font-weight:600;color:var(--ink);}
+.cart-info .price{font-size:13px;color:var(--ink-soft);margin-top:2px;font-family:'JetBrains Mono';}
+.qty-ctrl{display:flex;align-items:center;gap:8px;}
+.qty-ctrl button{
+  width:24px;height:24px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;
+}
+.empty-cart{color:var(--ink-soft);text-align:center;padding:60px 0;font-size:14px;}
+.drawer-foot{padding:22px;border-top:1px solid var(--line);}
+.total-row{display:flex;justify-content:space-between;margin-bottom:16px;font-size:15px;font-weight:700;color:var(--ink);}
+.checkout-btn{width:100%;}
+
+/* ===== CHECKOUT MODAL ===== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(12,14,31,0.5);z-index:110;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.detail-modal{position:relative;text-align:center;}
+.detail-visual{display:flex;justify-content:center;margin-bottom:6px;}
+.detail-desc{font-size:13.5px;color:var(--ink-soft);line-height:1.65;text-align:left;margin-bottom:16px;}
+.detail-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;text-align:left;}
+.detail-info-item{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.detail-info-item.full{grid-column:1/-1;}
+.detail-info-item .label{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.5px;}
+.detail-info-item .value{font-size:14px;font-weight:600;color:var(--ink);}
+.detail-variants{display:flex;flex-direction:column;gap:8px;text-align:left;margin-top:6px;}
+.detail-variant-row{
+  display:flex;justify-content:space-between;align-items:center;padding:11px 14px;
+  border-radius:10px;border:1.5px solid var(--line);background:var(--paper);cursor:pointer;
+  font-size:14px;font-weight:600;color:var(--ink);transition:border-color .15s;
+}
+.detail-variant-row .mono{font-family:'JetBrains Mono';font-weight:700;}
+.detail-variant-row.active{border-color:var(--coral);background:rgba(255,107,91,0.08);}
+.modal{
+  background:var(--surface);border:1px solid var(--line);border-radius:20px;
+  padding:32px;width:420px;max-width:100%;box-shadow:var(--shadow-lift);
+}
+.modal h3{font-size:20px;margin-bottom:6px;color:var(--ink);}
+.modal p.sub{color:var(--ink-soft);font-size:13px;margin-bottom:22px;}
+.field{margin-bottom:14px;}
+.field label{font-size:12px;color:var(--ink-soft);display:block;margin-bottom:6px;font-weight:500;}
+.field input{
+  width:100%;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);
+  background:var(--paper);color:var(--ink);font-size:14px;
+}
+.field input:focus{outline:none;border-color:var(--coral);}
+.modal-actions{display:flex;gap:10px;margin-top:20px;}
+.variant-input-row{display:flex;gap:6px;margin-bottom:8px;}
+.variant-input-row .variant-storage{flex:0 0 90px;}
+.variant-input-row .variant-price{flex:1;}
+.variant-input-row input{
+  padding:9px 11px;border-radius:8px;border:1.5px solid var(--line);
+  background:var(--paper);color:var(--ink);font-size:13px;
+}
+.variant-input-row input:focus{outline:none;border-color:var(--coral);}
+.remove-variant-row{
+  background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:16px;padding:0 6px;
+}
+.remove-variant-row:hover{color:var(--coral);}
+.success{text-align:center;padding:10px 0;}
+.success .check{
+  width:60px;height:60px;border-radius:50%;background:rgba(31,174,110,0.12);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;color:var(--green);
+}
+
+@media (max-width:780px){
+  .hero{grid-template-columns:1fr;}
+  .hero-visual{order:-1;}
+  .trust{grid-template-columns:repeat(2,1fr);}
+  nav{display:none;}
+  .search-wrap{max-width:140px;}
+}
+</style>
+</head>
+<body>
+
+<div class="statusbar">
+  <div class="sb-left">NOVA OS <span class="sb-dots"><span></span><span></span></span></div>
+  <div class="sb-right">
+    <span id="sbClock">9:41</span>
+    <span class="sb-battery"><span class="fill"></span></span>
+  </div>
+</div>
+
+<header>
+  <div class="logo"><span class="dot"></span>NOVA</div>
+  <nav>
+    <a href="#katalog">Katalog</a>
+    <a href="#trust">Kafolat</a>
+    <a href="#footer">Aloqa</a>
+  </nav>
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Telefon qidirish... (masalan: iPhone, Samsung)">
+  </div>
+  <button class="cart-btn" id="cartToggle">
+    🛒 Savatcha <span class="cart-count" id="cartCount">0</span>
+  </button>
+</header>
+
+<section class="hero">
+  <div>
+    <div class="eyebrow">Yangi kolleksiya • 2026</div>
+    <h1>Qo'lingizga mos <em>smartfon</em> shu yerda.</h1>
+    <p>Original telefonlar, rasmiy kafolat va tezkor yetkazib berish. Toshkent bo'yicha bugun buyurtma — ertaga uyingizda.</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary" onclick="document.getElementById('katalog').scrollIntoView({behavior:'smooth'})">Katalogni ko'rish</button>
+      <a href="#trust"><button class="btn btn-ghost">Kafolat shartlari</button></a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="phone-mock">
+      <div class="lock-time" id="lockTime">9:41</div>
+      <div class="lock-date" id="lockDate">Seshanba, 23-iyun</div>
+      <div class="lock-hint">Tepaga suring — katalogni oching</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="katalog">
+  <div class="section-head">
+    <h2>Katalog</h2>
+    <div class="filters" id="filters"></div>
+  </div>
+  <div class="grid" id="productGrid"></div>
+</section>
+
+<section class="trust" id="trust">
+  <div class="trust-item"><div class="num">12 oy</div><div class="label">Rasmiy kafolat</div></div>
+  <div class="trust-item"><div class="num">24/7</div><div class="label">Mijozlarni qo'llab-quvvatlash</div></div>
+  <div class="trust-item"><div class="num">1 kun</div><div class="label">Toshkent bo'yicha yetkazish</div></div>
+  <div class="trust-item"><div class="num">100%</div><div class="label">Original mahsulot</div></div>
+</section>
+
+<footer id="footer">
+  <div class="f-brand">NOVA<span class="dot">.</span> Mobile</div>
+  <div>Toshkent shahri · <a href="https://t.me/nova_mobile_shop_bot" target="_blank" style="color:var(--green);font-weight:600;">🤖 Telegram bot</a> · Aloqa: <a href="tel:+998900110813" style="color:var(--coral);font-weight:600;">+998 90 011 08 13</a></div>
+  <button id="adminToggle" class="admin-toggle-btn" onclick="toggleAdminMode()">🔒 Admin rejimi</button>
+  <button id="addPhoneBtn" class="admin-toggle-btn" style="display:none;" onclick="openAddPhoneForm()">➕ Yangi telefon qo'shish</button>
+</footer>
+
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h3>Savatcha</h3>
+    <button class="close-btn" id="closeDrawer">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="drawer-foot">
+    <div class="total-row"><span>Jami:</span><span id="cartTotal">0 so'm</span></div>
+    <button class="btn btn-primary checkout-btn" id="checkoutBtn">Buyurtmani rasmiylashtirish</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+const USD = 12700;
+const u = (d) => Math.round(d*USD/50000)*50000;
+
+const products = [
+  // ===== Apple =====
+  {id:1, name:"iPhone 17 Pro Max", brand:"apple", spec:"6.9\" OLED \u00b7 A19 Pro", variants:[["256GB",u(1199)],["512GB",u(1399)],["1TB",u(1599)],["2TB",u(1999)]], tag:"Yangi", category:"flagship"},
+  {id:2, name:"iPhone 17 Pro", brand:"apple", spec:"6.3\" OLED \u00b7 A19 Pro", variants:[["256GB",u(1099)],["512GB",u(1299)],["1TB",u(1499)]], tag:"Yangi", category:"flagship"},
+  {id:3, name:"iPhone Air", brand:"apple", spec:"6.5\" OLED \u00b7 Yupqa korpus", variants:[["256GB",u(999)],["512GB",u(1199)],["1TB",u(1399)]], tag:"Yangi", category:"flagship"},
+  {id:4, name:"iPhone 17", brand:"apple", spec:"6.3\" OLED \u00b7 A19", variants:[["256GB",u(799)],["512GB",u(999)]], tag:"Yangi", category:"flagship"},
+  {id:5, name:"iPhone 17e", brand:"apple", spec:"6.1\" OLED \u00b7 A19", variants:[["256GB",u(599)],["512GB",u(799)]], tag:null, category:"mid"},
+  {id:6, name:"iPhone 16 Pro Max", brand:"apple", spec:"6.9\" OLED \u00b7 A18 Pro", variants:[["256GB",u(1099)],["512GB",u(1299)],["1TB",u(1499)]], tag:"Sale", category:"flagship"},
+  {id:7, name:"iPhone 16 Pro", brand:"apple", spec:"6.3\" OLED \u00b7 A18 Pro", variants:[["128GB",u(899)],["256GB",u(999)],["512GB",u(1199)]], tag:"Sale", category:"flagship"},
+  {id:8, name:"iPhone 16", brand:"apple", spec:"6.1\" OLED \u00b7 A18", variants:[["128GB",u(699)],["256GB",u(799)],["512GB",u(999)]], tag:null, category:"mid"},
+  {id:9, name:"iPhone 16e", brand:"apple", spec:"6.1\" OLED \u00b7 A18", variants:[["128GB",u(499)],["256GB",u(599)],["512GB",u(799)]], tag:null, category:"mid"},
+  {id:10, name:"iPhone 15", brand:"apple", spec:"6.1\" OLED \u00b7 A16", variants:[["128GB",u(599)],["256GB",u(699)]], tag:"Sale", category:"mid"},
+  {id:11, name:"iPhone 15 Pro Max", brand:"apple", spec:"6.7\" OLED \u00b7 A17 Pro", variants:[["256GB",u(1199)],["512GB",u(1399)],["1TB",u(1599)]], tag:null, category:"flagship"},
+  {id:111, name:"iPhone 15 Pro", brand:"apple", spec:"6.1\" OLED \u00b7 A17 Pro", variants:[["256GB",u(849)],["512GB",u(999)]], tag:null, category:"flagship"},
+  {id:12, name:"iPhone 14", brand:"apple", spec:"6.1\" OLED \u00b7 A15", variants:[["128GB",u(549)],["256GB",u(649)]], tag:null, category:"mid"},
+  {id:121, name:"iPhone 14 Pro Max", brand:"apple", spec:"6.7\" OLED \u00b7 A16 Pro", variants:[["128GB",u(999)],["256GB",u(1099)],["512GB",u(1299)]], tag:null, category:"flagship"},
+  {id:122, name:"iPhone 14 Pro", brand:"apple", spec:"6.1\" OLED \u00b7 A16 Pro", variants:[["128GB",u(899)],["256GB",u(999)],["512GB",u(1199)]], tag:null, category:"flagship"},
+  {id:13, name:"iPhone 13", brand:"apple", spec:"6.1\" OLED \u00b7 A15", variants:[["128GB",u(449)],["256GB",u(549)]], tag:null, category:"mid"},
+  {id:131, name:"iPhone 13 Pro Max", brand:"apple", spec:"6.7\" OLED \u00b7 A15 Pro", variants:[["128GB",u(799)],["256GB",u(899)],["512GB",u(1099)]], tag:null, category:"flagship"},
+  {id:132, name:"iPhone 13 Pro", brand:"apple", spec:"6.1\" OLED \u00b7 A15 Pro", variants:[["128GB",u(699)],["256GB",u(799)],["512GB",u(999)]], tag:null, category:"flagship"},
+
+  // ===== Samsung =====
+  {id:15, name:"Samsung Galaxy S25 Ultra", brand:"samsung", spec:"6.9\" AMOLED \u00b7 Snapdragon 8 Elite", variants:[["256GB",u(1299)],["512GB",u(1419)],["1TB",u(1659)]], tag:"Yangi", category:"flagship"},
+  {id:16, name:"Samsung Galaxy S25+", brand:"samsung", spec:"6.7\" AMOLED \u00b7 Snapdragon 8 Elite", variants:[["256GB",u(999)],["512GB",u(1119)]], tag:null, category:"flagship"},
+  {id:17, name:"Samsung Galaxy S25", brand:"samsung", spec:"6.2\" AMOLED \u00b7 Snapdragon 8 Elite", variants:[["128GB",u(799)],["256GB",u(859)]], tag:null, category:"flagship"},
+  {id:18, name:"Samsung Galaxy S24 Ultra", brand:"samsung", spec:"6.8\" AMOLED \u00b7 Snapdragon 8 Gen 3", variants:[["256GB",u(1099)],["512GB",u(1219)],["1TB",u(1419)]], tag:"Sale", category:"flagship"},
+  {id:19, name:"Samsung Galaxy Z Fold 6", brand:"samsung", spec:"7.6\" katlanma AMOLED", variants:[["256GB",u(1899)],["512GB",u(2019)]], tag:null, category:"flagship"},
+  {id:20, name:"Samsung Galaxy Z Flip 6", brand:"samsung", spec:"6.7\" katlanma AMOLED", variants:[["256GB",u(1099)],["512GB",u(1219)]], tag:null, category:"flagship"},
+  {id:21, name:"Samsung Galaxy A56", brand:"samsung", spec:"6.7\" AMOLED \u00b7 Exynos 1580", variants:[["128GB",u(449)],["256GB",u(499)]], tag:null, category:"mid"},
+  {id:22, name:"Samsung Galaxy A36", brand:"samsung", spec:"6.7\" AMOLED \u00b7 Snapdragon 6 Gen 3", variants:[["128GB",u(349)],["256GB",u(399)]], tag:null, category:"mid"},
+  {id:23, name:"Samsung Galaxy A26", brand:"samsung", spec:"6.5\" AMOLED \u00b7 Dimensity 6300", variants:[["128GB",u(279)],["256GB",u(319)]], tag:null, category:"budget"},
+  {id:24, name:"Samsung Galaxy A16", brand:"samsung", spec:"6.7\" AMOLED \u00b7 Helio G99", variants:[["128GB",u(199)],["256GB",u(229)]], tag:"Sale", category:"budget"},
+  {id:25, name:"Samsung Galaxy M35", brand:"samsung", spec:"6.6\" AMOLED \u00b7 Exynos 1380", variants:[["128GB",u(299)],["256GB",u(339)]], tag:null, category:"budget"},
+
+  // ===== Xiaomi / Redmi / Poco =====
+  {id:26, name:"Xiaomi 15 Ultra", brand:"xiaomi", spec:"6.7\" AMOLED \u00b7 Snapdragon 8 Elite", variants:[["256GB",u(1299)],["512GB",u(1399)]], tag:"Yangi", category:"flagship"},
+  {id:261, name:"Xiaomi 17 Pro", brand:"xiaomi", spec:"6.83\" AMOLED \u00b7 Snapdragon 8 Elite Gen 5", variants:[["256GB",u(1199)],["512GB",u(1349)],["1TB",u(1499)]], tag:"Yangi", category:"flagship"},
+  {id:27, name:"Xiaomi 15", brand:"xiaomi", spec:"6.4\" AMOLED \u00b7 Snapdragon 8 Elite", variants:[["256GB",u(899)],["512GB",u(999)]], tag:null, category:"flagship"},
+  {id:28, name:"Xiaomi 14T Pro", brand:"xiaomi", spec:"6.7\" AMOLED \u00b7 Dimensity 9300+", variants:[["256GB",u(699)],["512GB",u(779)]], tag:null, category:"mid"},
+  {id:29, name:"Redmi Note 14 Pro+", brand:"xiaomi", spec:"6.67\" AMOLED \u00b7 Dimensity 7300", variants:[["256GB",u(399)],["512GB",u(449)]], tag:"Sale", category:"mid"},
+  {id:30, name:"Redmi Note 14 Pro", brand:"xiaomi", spec:"6.67\" AMOLED \u00b7 Snapdragon 6s", variants:[["128GB",u(329)],["256GB",u(369)]], tag:null, category:"mid"},
+  {id:31, name:"Redmi Note 14", brand:"xiaomi", spec:"6.67\" AMOLED \u00b7 Snapdragon 685", variants:[["128GB",u(229)],["256GB",u(259)]], tag:null, category:"budget"},
+  {id:32, name:"Redmi 14C", brand:"xiaomi", spec:"6.88\" IPS \u00b7 Helio G81", variants:[["128GB",u(149)],["256GB",u(179)]], tag:null, category:"budget"},
+  {id:33, name:"Redmi A5", brand:"xiaomi", spec:"6.88\" IPS \u00b7 Unisoc T7250", variants:[["64GB",u(99)],["128GB",u(119)]], tag:"Sale", category:"budget"},
+  {id:34, name:"Poco X7 Pro", brand:"xiaomi", spec:"6.67\" AMOLED \u00b7 Dimensity 8400", variants:[["256GB",u(279)],["512GB",u(319)]], tag:null, category:"mid"},
+  {id:35, name:"Poco F7", brand:"xiaomi", spec:"6.83\" AMOLED \u00b7 Snapdragon 8s Gen 4", variants:[["256GB",u(399)],["512GB",u(449)]], tag:null, category:"mid"},
+  {id:36, name:"Poco M7", brand:"xiaomi", spec:"6.7\" AMOLED \u00b7 Snapdragon 4 Gen 2", variants:[["128GB",u(169)],["256GB",u(199)]], tag:null, category:"budget"},
+
+  // ===== Google Pixel =====
+  {id:37, name:"Google Pixel 9 Pro XL", brand:"google", spec:"6.8\" OLED \u00b7 Tensor G4", variants:[["256GB",u(1099)],["512GB",u(1219)]], tag:null, category:"flagship"},
+  {id:38, name:"Google Pixel 9 Pro", brand:"google", spec:"6.3\" OLED \u00b7 Tensor G4", variants:[["128GB",u(999)],["256GB",u(1099)]], tag:null, category:"flagship"},
+  {id:39, name:"Google Pixel 9", brand:"google", spec:"6.3\" OLED \u00b7 Tensor G4", variants:[["128GB",u(799)],["256GB",u(899)]], tag:null, category:"mid"},
+  {id:40, name:"Google Pixel 9a", brand:"google", spec:"6.1\" OLED \u00b7 Tensor G4", variants:[["128GB",u(599)],["256GB",u(699)]], tag:null, category:"mid"},
+
+  // ===== OnePlus =====
+  {id:41, name:"OnePlus 13", brand:"oneplus", spec:"6.82\" AMOLED \u00b7 Snapdragon 8 Elite", variants:[["256GB",u(899)],["512GB",u(999)]], tag:null, category:"flagship"},
+  {id:42, name:"OnePlus 13R", brand:"oneplus", spec:"6.78\" AMOLED \u00b7 Snapdragon 8 Gen 3", variants:[["256GB",u(599)],["512GB",u(649)]], tag:null, category:"mid"},
+  {id:43, name:"OnePlus Nord 4", brand:"oneplus", spec:"6.74\" AMOLED \u00b7 Snapdragon 7+ Gen 3", variants:[["256GB",u(449)],["512GB",u(499)]], tag:null, category:"mid"},
+
+  // ===== Huawei =====
+  {id:44, name:"Huawei Pura 70 Pro", brand:"huawei", spec:"6.5\" OLED \u00b7 Kirin 9010", variants:[["256GB",u(999)],["512GB",u(1099)]], tag:null, category:"flagship"},
+  {id:45, name:"Huawei Nova 13", brand:"huawei", spec:"6.7\" OLED \u00b7 Snapdragon 6 Gen 1", variants:[["256GB",u(499)],["512GB",u(549)]], tag:null, category:"mid"},
+  {id:46, name:"Huawei Nova Y72", brand:"huawei", spec:"6.75\" IPS \u00b7 Snapdragon 680", variants:[["128GB",u(219)],["256GB",u(249)]], tag:null, category:"budget"},
+
+  // ===== Honor =====
+  {id:47, name:"Honor Magic 7 Pro", brand:"honor", spec:"6.8\" OLED \u00b7 Snapdragon 8 Elite", variants:[["256GB",u(1059)],["512GB",u(1159)]], tag:null, category:"flagship"},
+  {id:48, name:"Honor 200", brand:"honor", spec:"6.7\" AMOLED \u00b7 Snapdragon 7 Gen 3", variants:[["256GB",u(459)],["512GB",u(509)]], tag:null, category:"mid"},
+  {id:481, name:"Honor 600", brand:"honor", spec:"6.7\" AMOLED \u00b7 Snapdragon 8 Gen 3", variants:[["256GB",u(599)],["512GB",u(649)]], tag:"Yangi", category:"mid"},
+  {id:49, name:"Honor X9c", brand:"honor", spec:"6.78\" AMOLED \u00b7 Snapdragon 6 Gen 1", variants:[["256GB",u(319)],["512GB",u(359)]], tag:null, category:"mid"},
+  {id:491, name:"Honor X9d", brand:"honor", spec:"6.78\" AMOLED \u00b7 Snapdragon 6 Gen 3", variants:[["256GB",u(349)],["512GB",u(389)]], tag:null, category:"mid"},
+
+  // ===== Vivo / Oppo =====
+  {id:50, name:"Vivo X200 Pro", brand:"vivo", spec:"6.78\" AMOLED \u00b7 Dimensity 9400", variants:[["256GB",u(1099)],["512GB",u(1199)]], tag:null, category:"flagship"},
+  {id:51, name:"Vivo Y19s", brand:"vivo", spec:"6.68\" IPS \u00b7 Spreadtrum T616", variants:[["128GB",u(169)],["256GB",u(199)]], tag:null, category:"budget"},
+  {id:52, name:"Oppo Reno 13 Pro", brand:"oppo", spec:"6.83\" AMOLED \u00b7 Dimensity 8350", variants:[["256GB",u(579)],["512GB",u(629)]], tag:null, category:"mid"},
+  {id:53, name:"Oppo A3x", brand:"oppo", spec:"6.67\" IPS \u00b7 Snapdragon 4 Gen 2", variants:[["128GB",u(149)],["256GB",u(179)]], tag:null, category:"budget"},
+
+  // ===== Infinix / Tecno =====
+  {id:54, name:"Infinix Note 50 Pro+", brand:"infinix", spec:"6.78\" AMOLED \u00b7 Dimensity 7300", variants:[["256GB",u(259)],["512GB",u(289)]], tag:null, category:"budget"},
+  {id:55, name:"Infinix Hot 50", brand:"infinix", spec:"6.78\" IPS \u00b7 Helio G100", variants:[["128GB",u(159)],["256GB",u(189)]], tag:"Sale", category:"budget"},
+  {id:56, name:"Tecno Camon 30", brand:"tecno", spec:"6.78\" AMOLED \u00b7 Dimensity 7050", variants:[["256GB",u(279)],["512GB",u(309)]], tag:null, category:"budget"},
+  {id:57, name:"Tecno Spark 30", brand:"tecno", spec:"6.67\" IPS \u00b7 Unisoc T612", variants:[["128GB",u(139)],["256GB",u(169)]], tag:null, category:"budget"},
+
+  // ===== Nokia =====
+  // Nokia va Asus telefonlari olib tashlandi
+
+  // ===== Realme =====
+  {id:62, name:"Realme GT 7 Pro", brand:"realme", spec:"6.78\" AMOLED \u00b7 Snapdragon 8 Elite", variants:[["256GB",u(699)],["512GB",u(769)]], tag:null, category:"flagship"},
+  {id:63, name:"Realme 14 Pro+", brand:"realme", spec:"6.83\" AMOLED \u00b7 Dimensity 7300", variants:[["256GB",u(369)],["512GB",u(409)]], tag:null, category:"mid"},
+  {id:64, name:"Realme C75", brand:"realme", spec:"6.72\" IPS \u00b7 Unisoc T612", variants:[["128GB",u(139)],["256GB",u(159)]], tag:null, category:"budget"},
+];
+
+// Har bir telefonga deterministik baho va sharh sonini biriktiramiz
+products.forEach(p => {
+  const seed = p.id * 17 % 23;
+  p.rating = (4.2 + (seed % 8) * 0.1).toFixed(1);
+  p.reviews = 35 + (p.id * 13) % 260;
+});
+
+// Umumiy ma'lumotlar: chiqarilgan yili, batareya, asosiy kamera (real ma'lumotlarga yaqin)
+const EXTRA_SPECS = {
+  1:{year:2025,battery:"5000 mAh",camera:"48 MP asosiy + telefoto + ultra-keng"},
+  2:{year:2025,battery:"4600 mAh",camera:"48 MP asosiy + telefoto + ultra-keng"},
+  3:{year:2025,battery:"3000 mAh",camera:"48 MP asosiy + ultra-keng"},
+  4:{year:2025,battery:"3700 mAh",camera:"48 MP asosiy + ultra-keng"},
+  5:{year:2025,battery:"3700 mAh",camera:"48 MP asosiy"},
+  6:{year:2024,battery:"4685 mAh",camera:"48 MP asosiy + telefoto + ultra-keng"},
+  7:{year:2024,battery:"3582 mAh",camera:"48 MP asosiy + telefoto + ultra-keng"},
+  8:{year:2024,battery:"3561 mAh",camera:"48 MP asosiy + ultra-keng"},
+  9:{year:2025,battery:"4005 mAh",camera:"48 MP asosiy"},
+  10:{year:2023,battery:"3349 mAh",camera:"48 MP asosiy + ultra-keng"},
+  11:{year:2023,battery:"4441 mAh",camera:"48 MP asosiy + telefoto + ultra-keng"},
+  111:{year:2023,battery:"3274 mAh",camera:"48 MP asosiy + telefoto + ultra-keng"},
+  121:{year:2022,battery:"4323 mAh",camera:"48 MP asosiy + telefoto + ultra-keng"},
+  122:{year:2022,battery:"3200 mAh",camera:"48 MP asosiy + telefoto + ultra-keng"},
+  12:{year:2022,battery:"3279 mAh",camera:"12 MP asosiy + ultra-keng"},
+  13:{year:2021,battery:"3240 mAh",camera:"12 MP asosiy + ultra-keng"},
+  131:{year:2021,battery:"4352 mAh",camera:"12 MP asosiy + telefoto + ultra-keng"},
+  132:{year:2021,battery:"3095 mAh",camera:"12 MP asosiy + telefoto + ultra-keng"},
+  14:{year:2022,battery:"2018 mAh",camera:"12 MP asosiy"},
+  15:{year:2025,battery:"5000 mAh",camera:"200 MP asosiy + telefoto x2 + ultra-keng"},
+  16:{year:2025,battery:"4900 mAh",camera:"50 MP asosiy + telefoto + ultra-keng"},
+  17:{year:2025,battery:"4000 mAh",camera:"50 MP asosiy + telefoto + ultra-keng"},
+  18:{year:2024,battery:"5000 mAh",camera:"200 MP asosiy + telefoto x2 + ultra-keng"},
+  19:{year:2024,battery:"4400 mAh",camera:"50 MP asosiy + telefoto + ultra-keng"},
+  20:{year:2024,battery:"4000 mAh",camera:"50 MP asosiy + ultra-keng"},
+  21:{year:2025,battery:"5000 mAh",camera:"50 MP asosiy + ultra-keng"},
+  22:{year:2025,battery:"5000 mAh",camera:"50 MP asosiy + ultra-keng"},
+  23:{year:2025,battery:"5000 mAh",camera:"50 MP asosiy"},
+  24:{year:2025,battery:"5000 mAh",camera:"50 MP asosiy"},
+  25:{year:2024,battery:"6000 mAh",camera:"50 MP asosiy + ultra-keng"},
+  26:{year:2025,battery:"6000 mAh",camera:"50 MP asosiy + telefoto x2 + ultra-keng"},
+  261:{year:2025,battery:"7000 mAh",camera:"50 MP asosiy + telefoto + ultra-keng"},
+  27:{year:2025,battery:"5400 mAh",camera:"50 MP asosiy + telefoto + ultra-keng"},
+  28:{year:2024,battery:"5000 mAh",camera:"50 MP asosiy + telefoto"},
+  29:{year:2025,battery:"6000 mAh",camera:"200 MP asosiy + ultra-keng"},
+  30:{year:2024,battery:"5110 mAh",camera:"200 MP asosiy"},
+  31:{year:2025,battery:"5500 mAh",camera:"108 MP asosiy"},
+  32:{year:2024,battery:"5160 mAh",camera:"50 MP asosiy"},
+  33:{year:2025,battery:"5200 mAh",camera:"8 MP asosiy"},
+  34:{year:2024,battery:"6000 mAh",camera:"50 MP asosiy + ultra-keng"},
+  35:{year:2025,battery:"6500 mAh",camera:"50 MP asosiy + telefoto"},
+  36:{year:2025,battery:"5110 mAh",camera:"50 MP asosiy"},
+  37:{year:2024,battery:"5060 mAh",camera:"50 MP asosiy + telefoto + ultra-keng"},
+  38:{year:2024,battery:"4700 mAh",camera:"50 MP asosiy + telefoto + ultra-keng"},
+  39:{year:2024,battery:"4700 mAh",camera:"50 MP asosiy + ultra-keng"},
+  40:{year:2025,battery:"5100 mAh",camera:"48 MP asosiy + ultra-keng"},
+  41:{year:2024,battery:"6000 mAh",camera:"50 MP asosiy + telefoto + ultra-keng"},
+  42:{year:2025,battery:"6000 mAh",camera:"50 MP asosiy + ultra-keng"},
+  43:{year:2024,battery:"5500 mAh",camera:"50 MP asosiy + ultra-keng"},
+};
+function enrichProduct(p){
+  const seed = p.id * 17 % 23;
+  if(p.rating === undefined){
+    p.rating = (4.2 + (seed % 8) * 0.1).toFixed(1);
+    p.reviews = 35 + (p.id * 13) % 260;
+  }
+  const fallback = p.category === "flagship"
+    ? {year:2025, battery:"5000 mAh", camera:"50 MP asosiy + telefoto + ultra-keng"}
+    : p.category === "mid"
+    ? {year:2025, battery:"5200 mAh", camera:"50 MP asosiy + ultra-keng"}
+    : {year:2024, battery:"5000 mAh", camera:"50 MP asosiy"};
+  const extra = EXTRA_SPECS[p.id] || fallback;
+  p.year = extra.year;
+  p.battery = extra.battery;
+  p.camera = extra.camera;
+
+  const [screen, chip] = p.spec.split("\u00b7").map(s => s.trim());
+  p.screenInfo = screen || "-";
+  p.chipInfo = chip || "-";
+
+  const descByCategory = {
+    flagship: `${p.name} — ${p.year}-yilgi eng yuqori segmentdagi smartfon. ${p.chipInfo} protsessori va ${p.camera.toLowerCase()} kamera tizimi bilan jihozlangan, kuchli unumdorlik va professional darajadagi suratga olishni taklif qiladi.`,
+    mid: `${p.name} — narx va sifat muvozanatini saqlagan o'rta toifa smartfon. ${p.chipInfo} protsessori kundalik vazifalarni (ijtimoiy tarmoqlar, o'yinlar, suratga olish) muammosiz bajaradi, ${p.battery} batareya esa kun davomida quvvat beradi.`,
+    budget: `${p.name} — arzon narxda zamonaviy imkoniyatlarni taklif qiluvchi telefon. Asosiy vazifalar uchun mos, ${p.battery} batareya hajmi va ${p.camera.toLowerCase()} kamera bilan jihozlangan.`,
+  };
+  p.description = descByCategory[p.category] || descByCategory.mid;
+}
+products.forEach(enrichProduct);
+
+// ===== Doimiy saqlash (localStorage) — sevimlilar va admin narxlari uchun =====
+// Eslatma: bu faqat haqiqiy brauzerda (saytni deploy qilgandan keyin) ishlaydi.
+function safeGet(key){
+  try { return localStorage.getItem(key); } catch(e) { return null; }
+}
+function safeSet(key, value){
+  try { localStorage.setItem(key, value); } catch(e) { /* saqlash imkonsiz, jim o'tamiz */ }
+}
+
+function loadFavorites(){
+  const raw = safeGet('nova_favorites');
+  if(!raw) return new Set();
+  try { return new Set(JSON.parse(raw)); } catch(e) { return new Set(); }
+}
+function saveFavorites(){
+  safeSet('nova_favorites', JSON.stringify(Array.from(favorites)));
+}
+
+// ===== Firebase: narxlar endi HAMMAGA bir xil ko'rinadi (markaziy baza) =====
+const FIREBASE_DB_URL = "https://nova---mobile-default-rtdb.firebaseio.com";
+
+// ===== Yangi qo'shilgan telefonlar — markaziy bazadan (hammaga ko'rinadi) =====
+function loadCatalogAdditions(){
+  return fetch(`${FIREBASE_DB_URL}/extra_products.json`)
+    .then(res => res.json())
+    .then(extras => {
+      if(!extras) return;
+      Object.values(extras).forEach(item => {
+        if(products.find(x => x.id === item.id)) return; // takrorlanmasin
+        enrichProduct(item);
+        products.push(item);
+      });
+    })
+    .catch(err => console.error("Yangi telefonlarni yuklashda xato:", err));
+}
+function saveNewProductToCatalog(product){
+  // faqat asosiy maydonlarni saqlaymiz (rating/description avtomatik qayta hisoblanadi)
+  const toSave = {
+    id: product.id, name: product.name, brand: product.brand,
+    spec: product.spec, variants: product.variants, tag: product.tag, category: product.category
+  };
+  return fetch(`${FIREBASE_DB_URL}/extra_products/${product.id}.json`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(toSave)
+  }).catch(err => console.error("Yangi telefonni saqlashda xato:", err));
+}
+
+function loadPriceOverrides(){
+  return fetch(`${FIREBASE_DB_URL}/prices.json`)
+    .then(res => res.json())
+    .then(overrides => {
+      if(!overrides) return;
+      Object.entries(overrides).forEach(([key, price]) => {
+        const [id, vidx] = key.split('-').map(Number);
+        const p = products.find(x => x.id === id);
+        if(p && p.variants[vidx]) p.variants[vidx][1] = price;
+      });
+    })
+    .catch(err => console.error("Narxlarni yuklashda xato:", err));
+}
+function savePriceOverride(id, vidx, price){
+  fetch(`${FIREBASE_DB_URL}/prices/${id}-${vidx}.json`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(price)
+  }).catch(err => console.error("Narxni saqlashda xato:", err));
+}
+
+function loadImageOverrides(){
+  return fetch(`${FIREBASE_DB_URL}/images.json`)
+    .then(res => res.json())
+    .then(images => {
+      if(!images) return;
+      Object.entries(images).forEach(([id, dataUrl]) => {
+        const p = products.find(x => x.id === parseInt(id));
+        if(p) p.image = dataUrl;
+      });
+    })
+    .catch(err => console.error("Rasmlarni yuklashda xato:", err));
+}
+function saveImageOverride(id, dataUrl){
+  return fetch(`${FIREBASE_DB_URL}/images/${id}.json`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(dataUrl)
+  }).catch(err => console.error("Rasmni saqlashda xato:", err));
+}
+
+function loadNameOverrides(){
+  return fetch(`${FIREBASE_DB_URL}/names.json`)
+    .then(res => res.json())
+    .then(names => {
+      if(!names) return;
+      Object.entries(names).forEach(([id, name]) => {
+        const p = products.find(x => x.id === parseInt(id));
+        if(p) p.name = name;
+      });
+    })
+    .catch(err => console.error("Nomlarni yuklashda xato:", err));
+}
+function saveNameOverride(id, name){
+  fetch(`${FIREBASE_DB_URL}/names/${id}.json`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(name)
+  }).catch(err => console.error("Nomni saqlashda xato:", err));
+}
+
+// Yuklangan rasmni kichraytirib, sahifa tezligini saqlab qoladi
+function resizeImageToDataUrl(file, maxWidth){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function handleImageUpload(id, fileInput){
+  const file = fileInput.files[0];
+  if(!file) return;
+  resizeImageToDataUrl(file, 400).then(dataUrl => {
+    const p = products.find(x => x.id === id);
+    if(p) p.image = dataUrl;
+    saveImageOverride(id, dataUrl).then(() => renderProducts());
+  });
+}
+
+let favorites = new Set();
+loadCatalogAdditions().then(() =>
+  Promise.all([loadPriceOverrides(), loadImageOverrides(), loadNameOverrides()])
+).then(() => renderProducts());
+favorites = loadFavorites(); // sevimlilar hozircha shaxsiy (brauzerga xos)
+let showOnlyFavorites = false;
+let adminMode = false;
+
+const brandStyle = {
+  apple:   {bg:"linear-gradient(160deg,#3a3c46,#15161c)", notch:"pill", cam:"diag2", accent:"#cfd2da"},
+  samsung: {bg:"linear-gradient(160deg,#1c2b3a,#0f141c)", notch:"punch", cam:"corner3", accent:"#7fd6ff"},
+  xiaomi:  {bg:"linear-gradient(160deg,#3a2c1c,#1c140c)", notch:"punch", cam:"square3", accent:"#ff8a3d"},
+  google:  {bg:"linear-gradient(160deg,#243a30,#101a16)", notch:"punch", cam:"bar2", accent:"#9be8c4"},
+  oneplus: {bg:"linear-gradient(160deg,#2c1c1c,#150d0d)", notch:"punch", cam:"circle2", accent:"#ff4d4d"},
+  huawei:  {bg:"linear-gradient(160deg,#1c1c2c,#0d0d16)", notch:"punch", cam:"circleRing", accent:"#e0e0ff"},
+  honor:   {bg:"linear-gradient(160deg,#2c2436,#14101a)", notch:"punch", cam:"square2", accent:"#caa9ff"},
+  vivo:    {bg:"linear-gradient(160deg,#1c2a3a,#0d1420)", notch:"punch", cam:"circleRing", accent:"#7fa8ff"},
+  oppo:    {bg:"linear-gradient(160deg,#2c1c2a,#150d14)", notch:"punch", cam:"circle2", accent:"#ff9ed1"},
+  infinix: {bg:"linear-gradient(160deg,#1c2c28,#0d1612)", notch:"punch", cam:"square3", accent:"#7fffd4"},
+  tecno:   {bg:"linear-gradient(160deg,#2a2a1c,#14140d)", notch:"punch", cam:"square2", accent:"#ffe17f"},
+  nokia:   {bg:"linear-gradient(160deg,#1c1c1c,#0a0a0a)", notch:"none", cam:"circle1", accent:"#5fb8ff"},
+  asus:    {bg:"linear-gradient(160deg,#1c1c2a,#0a0a12)", notch:"punch", cam:"squareGlow", accent:"#ff3d5a"},
+  realme:  {bg:"linear-gradient(160deg,#2a1c1c,#140d0d)", notch:"punch", cam:"circle2", accent:"#ffe14d"},
+};
+
+const brandLogoText = {
+  apple:"Apple", samsung:"SAMSUNG", xiaomi:"MI", google:"G", oneplus:"1+",
+  huawei:"HUAWEI", honor:"HONOR", vivo:"vivo", oppo:"OPPO", infinix:"INFINIX",
+  tecno:"TECNO", nokia:"NOKIA", asus:"ASUS", realme:"realme"
+};
+
+// Har bir telefon uchun "ish ekrani" ko'rinishidagi SVG (asl fotosurat emas — vektor taqlid)
+function phoneHTML(p, size){
+  const isSmall = size === 'small';
+  const isLarge = size === 'large';
+  const W = isSmall ? 42 : isLarge ? 150 : 100, H = isSmall ? 80 : isLarge ? 290 : 192;
+  if(p.image){
+    const radius = isSmall ? 10 : isLarge ? 28 : 16;
+    if(isSmall || isLarge){
+      return `<img src="${p.image}" style="width:${W}px;height:${H}px;object-fit:contain;border-radius:${radius}px;flex-shrink:0;" alt="${p.name}">`;
+    }
+    // Standart karta ko'rinishi: konteynerni to'liq qoplaydi, bo'sh joy qolmaydi
+    return `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:${radius}px;" alt="${p.name}">`;
+  }
+  const s = brandStyle[p.brand] || brandStyle.apple;
+  const logo = brandLogoText[p.brand] || p.brand;
+  const notch = s.notch === "pill"
+    ? `<rect x="${W*0.32}" y="${isLarge?5:3}" width="${W*0.36}" height="${isSmall?3:isLarge?9:6}" rx="4" fill="#000"/>`
+    : s.notch === "punch"
+    ? `<circle cx="${W/2}" cy="${isSmall?6:isLarge?13:9}" r="${isSmall?2:isLarge?4:3}" fill="#000"/>`
+    : "";
+  // app icon grid (sodda taqlid, real ilova emas)
+  const cols = isSmall ? 3 : 4;
+  const iconSize = isSmall ? 6 : isLarge ? 17 : 13;
+  const gap = isSmall ? 3 : isLarge ? 10 : 7;
+  const gridTop = isSmall ? 16 : isLarge ? 46 : 32;
+  const gridLeft = (W - (cols*iconSize + (cols-1)*gap)) / 2;
+  let icons = "";
+  const rows = isSmall ? 2 : 3;
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const x = gridLeft + c*(iconSize+gap);
+      const y = gridTop + r*(iconSize+gap);
+      const op = 0.55 + ((r*cols+c) % 3)*0.15;
+      icons += `<rect x="${x}" y="${y}" width="${iconSize}" height="${iconSize}" rx="${iconSize*0.28}" fill="${s.accent}" opacity="${op}"/>`;
+    }
+  }
+  const dockY = H - (isSmall ? 12 : isLarge ? 32 : 22);
+  const dockH = isSmall ? 8 : isLarge ? 22 : 16;
+  const fontSize = isSmall ? 5 : isLarge ? 13 : 9;
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="border-radius:${isSmall?10:isLarge?28:16}px;flex-shrink:0;">
+    <defs><linearGradient id="bgrad${p.id}${size||''}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${s.bg.match(/#[0-9a-fA-F]{6}/g)[0]}"/>
+      <stop offset="1" stop-color="${s.bg.match(/#[0-9a-fA-F]{6}/g)[1]}"/>
+    </linearGradient></defs>
+    <rect width="${W}" height="${H}" rx="${isSmall?10:isLarge?28:16}" fill="url(#bgrad${p.id}${size||''})"/>
+    ${notch}
+    ${icons}
+    <rect x="${isSmall?6:10}" y="${dockY}" width="${W-(isSmall?12:20)}" height="${dockH}" rx="${dockH/2}" fill="#ffffff" opacity="0.08"/>
+    <text x="${W/2}" y="${H-(isSmall?3:6)}" text-anchor="middle" font-family="Sora,sans-serif" font-weight="700" font-size="${fontSize}" fill="${s.accent}" opacity="0.9">${logo}</text>
+  </svg>`;
+}
+
+const categories = [
+  {id:"all", label:"Barchasi"},
+  {id:"flagship", label:"Flagman"},
+  {id:"mid", label:"O'rta toif"},
+  {id:"budget", label:"Arzon"},
+];
+
+// ===== TELEGRAM BOT CONFIG =====
+// 1) Telegram'da @BotFather ga yozib /newbot orqali bot yarating, TOKEN oling
+// 2) Botingizga /start yozing, keyin https://api.telegram.org/bot<TOKEN>/getUpdates orqali "chat":{"id": ...} ni topib CHAT_ID ga qo'ying
+// 3) Pastdagi ikki qatorni o'z TOKEN va CHAT_ID'ingiz bilan to'ldiring
+const TELEGRAM_BOT_TOKEN = "8778338115:AAEVlY3PB854WQphlZmQH1gmWBjBtQP_ee4";
+const TELEGRAM_CHAT_ID = "7449247427";
+
+function sendOrderToTelegram(name, phone, addr, total, items){
+  if(TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN_HERE") return; // sozlanmagan, jim o'tkazib yuboramiz
+
+  let itemsText = items.map(([key, qty]) => {
+    const [id, vIdx] = key.split('-').map(Number);
+    const p = products.find(x => x.id === id);
+    const variant = p.variants[vIdx];
+    return `• ${p.name} (${variant[0]}) x${qty} — ${fmt(variant[1]*qty)}`;
+  }).join('\n');
+
+  const text = `🛒 *Yangi buyurtma — NOVA Mobile*\n\n`
+    + `👤 Ism: ${name}\n`
+    + `📞 Tel: ${phone}\n`
+    + `📍 Manzil: ${addr || "kiritilmagan"}\n\n`
+    + `${itemsText}\n\n`
+    + `💰 Jami: ${fmt(total)}`;
+
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({chat_id: TELEGRAM_CHAT_ID, text: text, parse_mode: "Markdown"})
+  }).catch(err => console.error("Telegram yuborishda xato:", err));
+}
+
+let activeFilter = "all";
+let searchQuery = "";
+let cart = {}; // "id-variantIdx" -> qty
+let selectedVariant = {}; // id -> variant index
+
+function fmt(n){ return n.toLocaleString('ru-RU').replace(/,/g,' ') + " so'm"; }
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  renderProducts();
+});
+
+function renderFilters(){
+  const el = document.getElementById('filters');
+  el.innerHTML = categories.map(c => `<div class="filter-chip ${c.id===activeFilter?'active':''}" data-cat="${c.id}">${c.label}</div>`).join('')
+    + `<div class="filter-chip fav-filter ${showOnlyFavorites?'active':''}" id="favFilterChip">❤️ Sevimlilar</div>`;
+  el.querySelectorAll('.filter-chip[data-cat]').forEach(chip => {
+    chip.addEventListener('click', () => { activeFilter = chip.dataset.cat; renderFilters(); renderProducts(); });
+  });
+  document.getElementById('favFilterChip').addEventListener('click', () => {
+    showOnlyFavorites = !showOnlyFavorites;
+    renderFilters();
+    renderProducts();
+  });
+}
+
+function renderProducts(){
+  const grid = document.getElementById('productGrid');
+  let list = activeFilter === 'all' ? products : products.filter(p => p.category === activeFilter);
+  if(searchQuery){
+    list = list.filter(p => p.name.toLowerCase().includes(searchQuery));
+  }
+  if(showOnlyFavorites){
+    list = list.filter(p => favorites.has(p.id));
+  }
+  if(list.length === 0){
+    const msg = showOnlyFavorites ? "Sevimlilar ro'yxati bo'sh. Yurakcha bosib telefon qo'shing." : "Hech narsa topilmadi. Boshqa nom bilan qidirib ko'ring.";
+    grid.innerHTML = `<div style="color:var(--ink-soft);padding:40px;grid-column:1/-1;text-align:center;">${msg}</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(p => {
+    const vIdx = selectedVariant[p.id] || 0;
+    const variantOptions = p.variants.map((v,i) => `<option value="${i}" ${i===vIdx?'selected':''}>${v[0]}</option>`).join('');
+    const isFav = favorites.has(p.id);
+    const stars = "★".repeat(Math.round(p.rating)) + "☆".repeat(5 - Math.round(p.rating));
+    const priceField = adminMode
+      ? `<input type="number" class="admin-price-input" data-id="${p.id}" data-vidx="${vIdx}" value="${p.variants[vIdx][1]}">`
+      : `<div class="p-price" id="price-${p.id}">${fmt(p.variants[vIdx][1])}</div>`;
+    const imageUploadField = adminMode
+      ? `<label class="admin-img-upload">📷 Rasm yuklash<input type="file" accept="image/*" class="admin-image-input" data-id="${p.id}" hidden></label>`
+      : '';
+    const titleField = adminMode
+      ? `<input type="text" class="admin-name-input" data-id="${p.id}" value="${p.name}">`
+      : `<div class="p-title" data-detail-id="${p.id}" style="cursor:pointer;">${p.name}</div>`;
+    return `
+    <div class="product-card">
+      <div class="glow"></div>
+      <button class="fav-btn ${isFav?'active':''}" data-id="${p.id}">${isFav ? '❤️' : '🤍'}</button>
+      ${p.tag ? `<div class="badge ${p.tag==='Sale'?'sale':''}">${p.tag}</div>` : ''}
+      <div class="p-visual" data-detail-id="${p.id}">${phoneHTML(p)}</div>
+      ${imageUploadField}
+      ${titleField}
+      <div class="p-spec" data-detail-id="${p.id}" style="cursor:pointer;">${p.spec}</div>
+      <div class="p-rating"><span class="stars">${stars}</span> ${p.rating} <span class="reviews-count">(${p.reviews} sharh)</span></div>
+      <select class="variant-select" data-id="${p.id}">${variantOptions}</select>
+      <div class="p-bottom">
+        ${priceField}
+        <button class="add-btn" data-id="${p.id}">+</button>
+      </div>
+    </div>
+  `;
+  }).join('');
+  grid.querySelectorAll('[data-detail-id]').forEach(el => {
+    el.addEventListener('click', () => openProductDetail(parseInt(el.dataset.detailId)));
+  });
+  grid.querySelectorAll('.admin-image-input').forEach(inp => {
+    inp.addEventListener('change', () => handleImageUpload(parseInt(inp.dataset.id), inp));
+  });
+  grid.querySelectorAll('.admin-name-input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const id = parseInt(inp.dataset.id);
+      const newName = inp.value.trim();
+      if(!newName) return;
+      const p = products.find(x=>x.id===id);
+      p.name = newName;
+      saveNameOverride(id, newName);
+      renderProducts();
+    });
+  });
+  grid.querySelectorAll('.add-btn').forEach(btn => {
+    btn.addEventListener('click', () => addToCart(parseInt(btn.dataset.id)));
+  });
+  grid.querySelectorAll('.variant-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const id = parseInt(sel.dataset.id);
+      selectedVariant[id] = parseInt(sel.value);
+      renderProducts();
+    });
+  });
+  grid.querySelectorAll('.fav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.id);
+      if(favorites.has(id)) favorites.delete(id); else favorites.add(id);
+      saveFavorites();
+      renderProducts();
+    });
+  });
+  grid.querySelectorAll('.admin-price-input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const id = parseInt(inp.dataset.id);
+      const vidx = parseInt(inp.dataset.vidx);
+      const newPrice = parseInt(inp.value) || 0;
+      const p = products.find(x=>x.id===id);
+      p.variants[vidx][1] = newPrice;
+      savePriceOverride(id, vidx, newPrice);
+      renderProducts();
+    });
+  });
+}
+
+const ADMIN_CODE = "1234"; // <-- shu kodni o'zingiz xohlagan parolga o'zgartiring
+
+function openProductDetail(id){
+  const p = products.find(x => x.id === id);
+  if(!p) return;
+  const vIdx = selectedVariant[p.id] || 0;
+  const stars = "★".repeat(Math.round(p.rating)) + "☆".repeat(5 - Math.round(p.rating));
+  const variantRows = p.variants.map((v,i) => `
+    <div class="detail-variant-row ${i===vIdx?'active':''}" data-vidx="${i}">
+      <span>${v[0]}</span><span class="mono">${fmt(v[1])}</span>
+    </div>
+  `).join('');
+  document.getElementById('modalContent').innerHTML = `
+    <div class="detail-modal">
+      <button class="close-btn" id="closeDetail" style="position:absolute;top:14px;right:14px;">✕</button>
+      <div class="detail-visual">${phoneHTML(p, 'large')}</div>
+      <h3 style="margin-top:16px;">${p.name}</h3>
+      <p class="sub" style="margin-bottom:8px;">${p.spec}</p>
+      <div class="p-rating" style="margin-bottom:16px;justify-content:center;"><span class="stars">${stars}</span> ${p.rating} <span class="reviews-count">(${p.reviews} sharh)</span></div>
+      <p class="detail-desc">${p.description}</p>
+      <div class="detail-info-grid">
+        <div class="detail-info-item"><span class="label">Chiqarilgan yili</span><span class="value">${p.year}</span></div>
+        <div class="detail-info-item"><span class="label">Batareya</span><span class="value">${p.battery}</span></div>
+        <div class="detail-info-item"><span class="label">Ekran</span><span class="value">${p.screenInfo}</span></div>
+        <div class="detail-info-item"><span class="label">Protsessor</span><span class="value">${p.chipInfo}</span></div>
+        <div class="detail-info-item full"><span class="label">Kamera</span><span class="value">${p.camera}</span></div>
+      </div>
+      <div class="detail-variants">${variantRows}</div>
+      <button class="btn btn-primary" style="width:100%;margin-top:18px;" id="detailAddBtn">Savatchaga qo'shish</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('closeDetail').addEventListener('click', closeModal);
+  document.querySelectorAll('.detail-variant-row').forEach(row => {
+    row.addEventListener('click', () => {
+      selectedVariant[p.id] = parseInt(row.dataset.vidx);
+      openProductDetail(id);
+    });
+  });
+  document.getElementById('detailAddBtn').addEventListener('click', () => {
+    addToCart(p.id);
+    closeModal();
+  });
+}
+
+function openAddPhoneForm(){
+  const brandOptions = Object.keys(brandStyle).map(b => `<option value="${b}">${b}</option>`).join('');
+  document.getElementById('modalContent').innerHTML = `
+    <h3>➕ Yangi telefon qo'shish</h3>
+    <p class="sub">Ma'lumotlarni to'ldiring — saqlangach hammaga ko'rinadi</p>
+    <div class="field"><label>Nomi</label><input type="text" id="newPhoneName" placeholder="Masalan: iPhone 18 Pro"></div>
+    <div class="field"><label>Xususiyatlar (ekran · protsessor)</label><input type="text" id="newPhoneSpec" placeholder='6.5" OLED · A20 Pro'></div>
+    <div class="field">
+      <label>Brend</label>
+      <select id="newPhoneBrand" style="width:100%;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);font-size:14px;">
+        ${brandOptions}
+      </select>
+    </div>
+    <div class="field">
+      <label>Kategoriya</label>
+      <select id="newPhoneCategory" style="width:100%;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);font-size:14px;">
+        <option value="flagship">🔥 Flagman</option>
+        <option value="mid">⚡ O'rta toif</option>
+        <option value="budget">💰 Arzon</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Xotira variantlari va narxlari</label>
+      <div id="variantRows"></div>
+      <button type="button" class="btn btn-ghost" style="width:100%;margin-top:8px;font-size:13px;padding:9px;" id="addVariantRowBtn">+ Variant qo'shish</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" id="cancelAddPhone">Bekor qilish</button>
+      <button class="btn btn-primary" style="flex:1" id="confirmAddPhone">Saqlash</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+
+  function addVariantRow(){
+    const row = document.createElement('div');
+    row.className = "variant-input-row";
+    row.innerHTML = `
+      <input type="text" class="variant-storage" placeholder="256GB">
+      <input type="number" class="variant-price" placeholder="Narxi (so'm)">
+      <button type="button" class="remove-variant-row">✕</button>
+    `;
+    document.getElementById('variantRows').appendChild(row);
+    row.querySelector('.remove-variant-row').addEventListener('click', () => row.remove());
+  }
+  addVariantRow();
+  document.getElementById('addVariantRowBtn').addEventListener('click', addVariantRow);
+  document.getElementById('cancelAddPhone').addEventListener('click', closeModal);
+
+  document.getElementById('confirmAddPhone').addEventListener('click', () => {
+    const name = document.getElementById('newPhoneName').value.trim();
+    const spec = document.getElementById('newPhoneSpec').value.trim();
+    const brand = document.getElementById('newPhoneBrand').value;
+    const category = document.getElementById('newPhoneCategory').value;
+    const variants = [];
+    document.querySelectorAll('.variant-input-row').forEach(row => {
+      const storage = row.querySelector('.variant-storage').value.trim();
+      const price = parseInt(row.querySelector('.variant-price').value) || 0;
+      if(storage && price > 0) variants.push([storage, price]);
+    });
+    if(!name || !spec || variants.length === 0){
+      alert("Iltimos, nomi, xususiyatlari va kamida bitta xotira/narx variantini kiriting.");
+      return;
+    }
+    const newId = Math.max(...products.map(p => p.id), 0) + 1;
+    const newProduct = { id: newId, name, spec, brand, category, variants, tag: "Yangi" };
+    enrichProduct(newProduct);
+    products.push(newProduct);
+    saveNewProductToCatalog(newProduct).then(() => {
+      closeModal();
+      renderProducts();
+    });
+  });
+}
+
+function toggleAdminMode(){
+  if(adminMode){
+    adminMode = false;
+    document.getElementById('adminToggle').textContent = "🔒 Admin rejimi";
+    document.getElementById('adminToggle').classList.remove('active');
+    document.getElementById('addPhoneBtn').style.display = "none";
+    renderProducts();
+    return;
+  }
+  document.getElementById('modalContent').innerHTML = `
+    <h3>🔒 Admin kodi</h3>
+    <p class="sub">Narxlarni tahrirlash uchun kodni kiriting</p>
+    <div class="field"><input type="password" id="adminCodeInput" placeholder="Kod" autofocus></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" id="cancelAdminCode">Bekor qilish</button>
+      <button class="btn btn-primary" style="flex:1" id="confirmAdminCode">Tasdiqlash</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('cancelAdminCode').addEventListener('click', closeModal);
+  const submit = () => {
+    const entered = document.getElementById('adminCodeInput').value;
+    if(entered !== ADMIN_CODE){
+      alert("Kod xato.");
+      return;
+    }
+    adminMode = true;
+    document.getElementById('adminToggle').textContent = "🔓 Admin rejimi: YONIQ (narxlarni bosib tahrirlang)";
+    document.getElementById('adminToggle').classList.add('active');
+    document.getElementById('addPhoneBtn').style.display = "inline-block";
+    closeModal();
+    renderProducts();
+  };
+  document.getElementById('confirmAdminCode').addEventListener('click', submit);
+  document.getElementById('adminCodeInput').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') submit();
+  });
+}
+
+function addToCart(id){
+  const vIdx = selectedVariant[id] || 0;
+  const key = id + "-" + vIdx;
+  cart[key] = (cart[key] || 0) + 1;
+  renderCart();
+  openDrawer();
+}
+
+function changeQty(key, delta){
+  cart[key] = (cart[key] || 0) + delta;
+  if(cart[key] <= 0) delete cart[key];
+  renderCart();
+}
+
+function renderCart(){
+  const items = Object.entries(cart);
+  const countEl = document.getElementById('cartCount');
+  const itemsEl = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+
+  const totalQty = items.reduce((s,[,q]) => s+q, 0);
+  countEl.textContent = totalQty;
+
+  if(items.length === 0){
+    itemsEl.innerHTML = `<div class="empty-cart">Savatcha bo'sh.<br>Katalogdan telefon qo'shing.</div>`;
+    totalEl.textContent = "0 so'm";
+    return;
+  }
+
+  let total = 0;
+  itemsEl.innerHTML = items.map(([key, qty]) => {
+    const [id, vIdx] = key.split('-').map(Number);
+    const p = products.find(x => x.id === id);
+    const variant = p.variants[vIdx];
+    total += variant[1] * qty;
+    return `
+      <div class="cart-row">
+        ${phoneHTML(p, 'small')}
+        <div class="cart-info">
+          <div class="name">${p.name} <span style="color:var(--text-dim);font-weight:400;">(${variant[0]})</span></div>
+          <div class="price">${fmt(variant[1])}</div>
+        </div>
+        <div class="qty-ctrl">
+          <button data-key="${key}" data-delta="-1">−</button>
+          <span>${qty}</span>
+          <button data-key="${key}" data-delta="1">+</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  totalEl.textContent = fmt(total);
+
+  itemsEl.querySelectorAll('.qty-ctrl button').forEach(btn => {
+    btn.addEventListener('click', () => changeQty(btn.dataset.key, parseInt(btn.dataset.delta)));
+  });
+}
+
+function openDrawer(){
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+document.getElementById('cartToggle').addEventListener('click', openDrawer);
+document.getElementById('closeDrawer').addEventListener('click', closeDrawer);
+document.getElementById('overlay').addEventListener('click', closeDrawer);
+
+function openCheckout(){
+  const items = Object.entries(cart);
+  if(items.length === 0) return;
+  let total = 0;
+  items.forEach(([key,qty]) => {
+    const [id, vIdx] = key.split('-').map(Number);
+    const p = products.find(x=>x.id===id);
+    total += p.variants[vIdx][1] * qty;
+  });
+
+  document.getElementById('modalContent').innerHTML = `
+    <h3>Buyurtmani rasmiylashtirish</h3>
+    <p class="sub">Jami: <strong>${fmt(total)}</strong> — ma'lumotlaringizni kiriting</p>
+    <div class="field"><label>To'liq ism</label><input type="text" id="custName" placeholder="Ism Familiya"></div>
+    <div class="field"><label>Telefon raqam</label><input type="text" id="custPhone" placeholder="+998 90 123 45 67"></div>
+    <div class="field"><label>Yetkazib berish manzili</label><input type="text" id="custAddr" placeholder="Shahar, tuman, ko'cha"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" id="cancelOrder">Bekor qilish</button>
+      <button class="btn btn-primary" style="flex:1" id="confirmOrder">Tasdiqlash</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('cancelOrder').addEventListener('click', closeModal);
+  document.getElementById('confirmOrder').addEventListener('click', () => confirmOrder(total));
+}
+
+function confirmOrder(total){
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const addr = document.getElementById('custAddr').value.trim();
+  if(!name || !phone){
+    alert("Iltimos, ism va telefon raqamingizni kiriting.");
+    return;
+  }
+
+  sendOrderToTelegram(name, phone, addr, total, Object.entries(cart));
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="success">
+      <div class="check">✓</div>
+      <h3>Buyurtma qabul qilindi!</h3>
+      <p class="sub">Rahmat, ${name}! Tez orada operatorlarimiz ${phone} raqamiga qo'ng'iroq qilishadi.<br>Jami summa: ${fmt(total)}</p>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px" id="closeSuccess">Yopish</button>
+    </div>
+  `;
+  document.getElementById('closeSuccess').addEventListener('click', () => {
+    cart = {};
+    renderCart();
+    closeModal();
+    closeDrawer();
+  });
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+document.getElementById('checkoutBtn').addEventListener('click', openCheckout);
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if(e.target.id === 'modalOverlay') closeModal();
+});
+
+renderFilters();
+renderProducts();
+renderCart();
+
+// Status bar va qulflangan ekran soati — haqiqiy vaqtni ko'rsatadi
+function tickClock(){
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  const time = `${h}:${m}`;
+  const sb = document.getElementById('sbClock');
+  const lt = document.getElementById('lockTime');
+  if(sb) sb.textContent = time;
+  if(lt) lt.textContent = time;
+}
+tickClock();
+setInterval(tickClock, 30000);
+</script>
+</body>
+</html>
