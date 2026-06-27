@@ -1141,6 +1141,22 @@ function openAddPhoneForm(){
   });
 }
 
+function notifyAdminLoginAttempt(email, success){
+  if(TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN_HERE") return;
+  const now = new Date();
+  const time = now.toLocaleString('uz-UZ');
+  const status = success ? "✅ Muvaffaqiyatli kirdi" : "❌ Xato parol (kirish rad etildi)";
+  const text = `🔐 *Admin panelga kirish urinishi*\n\n`
+    + `${status}\n`
+    + `📧 Email: ${email}\n`
+    + `🕒 Vaqt: ${time}`;
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({chat_id: TELEGRAM_CHAT_ID, text: text, parse_mode: "Markdown"})
+  }).catch(err => console.error("Bildirishnoma yuborishda xato:", err));
+}
+
 function toggleAdminMode(){
   if(adminMode){
     adminMode = false;
@@ -1180,10 +1196,12 @@ function toggleAdminMode(){
       .then(res => res.json())
       .then(data => {
         if(!data.idToken){
+          notifyAdminLoginAttempt(email, false);
           alert("Email yoki parol xato.");
           btn.textContent = "Kirish";
           return;
         }
+        notifyAdminLoginAttempt(email, true);
         firebaseIdToken = data.idToken;
         adminMode = true;
         document.getElementById('adminToggle').textContent = "🔓 Admin rejimi: YONIQ (narxlarni bosib tahrirlang)";
