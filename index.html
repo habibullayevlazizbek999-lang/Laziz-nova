@@ -657,7 +657,9 @@ function saveFavorites(){
 }
 
 // ===== Firebase: narxlar endi HAMMAGA bir xil ko'rinadi (markaziy baza) =====
-const FIREBASE_DB_URL = "https://nova---mobile-default-rtdb.firebaseio.com";
+const FIREBASE_DB_URL = "https://nova-mobile-2-default-rtdb.firebaseio.com";
+const FIREBASE_API_KEY = "AIzaSyBxTzs0S_YHWdd5UyEohLZPZbQ7F68RbT8";
+let firebaseIdToken = null; // admin tasdiqlangandan keyin shu yerga yoziladi
 
 // ===== Yangi qo'shilgan telefonlar — markaziy bazadan (hammaga ko'rinadi) =====
 function loadCatalogAdditions(){
@@ -679,7 +681,7 @@ function saveNewProductToCatalog(product){
     id: product.id, name: product.name, brand: product.brand,
     spec: product.spec, variants: product.variants, tag: product.tag, category: product.category
   };
-  return fetch(`${FIREBASE_DB_URL}/extra_products/${product.id}.json`, {
+  return fetch(`${FIREBASE_DB_URL}/extra_products/${product.id}.json?auth=${firebaseIdToken}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(toSave)
@@ -700,7 +702,7 @@ function loadPriceOverrides(){
     .catch(err => console.error("Narxlarni yuklashda xato:", err));
 }
 function savePriceOverride(id, vidx, price){
-  fetch(`${FIREBASE_DB_URL}/prices/${id}-${vidx}.json`, {
+  fetch(`${FIREBASE_DB_URL}/prices/${id}-${vidx}.json?auth=${firebaseIdToken}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(price)
@@ -720,7 +722,7 @@ function loadImageOverrides(){
     .catch(err => console.error("Rasmlarni yuklashda xato:", err));
 }
 function saveImageOverride(id, dataUrl){
-  return fetch(`${FIREBASE_DB_URL}/images/${id}.json`, {
+  return fetch(`${FIREBASE_DB_URL}/images/${id}.json?auth=${firebaseIdToken}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(dataUrl)
@@ -740,7 +742,7 @@ function loadNameOverrides(){
     .catch(err => console.error("Nomlarni yuklashda xato:", err));
 }
 function saveNameOverride(id, name){
-  fetch(`${FIREBASE_DB_URL}/names/${id}.json`, {
+  fetch(`${FIREBASE_DB_URL}/names/${id}.json?auth=${firebaseIdToken}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(name)
@@ -1021,7 +1023,6 @@ function renderProducts(){
   });
 }
 
-const ADMIN_CODE = "1234"; // <-- shu kodni o'zingiz xohlagan parolga o'zgartiring
 
 function openProductDetail(id){
   const p = products.find(x => x.id === id);
@@ -1143,6 +1144,7 @@ function openAddPhoneForm(){
 function toggleAdminMode(){
   if(adminMode){
     adminMode = false;
+    firebaseIdToken = null;
     document.getElementById('adminToggle').textContent = "🔒 Admin rejimi";
     document.getElementById('adminToggle').classList.remove('active');
     document.getElementById('addPhoneBtn').style.display = "none";
@@ -1150,31 +1152,53 @@ function toggleAdminMode(){
     return;
   }
   document.getElementById('modalContent').innerHTML = `
-    <h3>🔒 Admin kodi</h3>
-    <p class="sub">Narxlarni tahrirlash uchun kodni kiriting</p>
-    <div class="field"><input type="password" id="adminCodeInput" placeholder="Kod" autofocus></div>
+    <h3>🔒 Admin kirish</h3>
+    <p class="sub">Narxlarni tahrirlash uchun email va parolingizni kiriting</p>
+    <div class="field"><input type="text" id="adminEmailInput" placeholder="Email" autofocus></div>
+    <div class="field"><input type="password" id="adminPassInput" placeholder="Parol"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" style="flex:1" id="cancelAdminCode">Bekor qilish</button>
-      <button class="btn btn-primary" style="flex:1" id="confirmAdminCode">Tasdiqlash</button>
+      <button class="btn btn-primary" style="flex:1" id="confirmAdminCode">Kirish</button>
     </div>
   `;
   document.getElementById('modalOverlay').classList.add('open');
   document.getElementById('cancelAdminCode').addEventListener('click', closeModal);
   const submit = () => {
-    const entered = document.getElementById('adminCodeInput').value;
-    if(entered !== ADMIN_CODE){
-      alert("Kod xato.");
+    const email = document.getElementById('adminEmailInput').value.trim();
+    const password = document.getElementById('adminPassInput').value;
+    if(!email || !password){
+      alert("Email va parolni kiriting.");
       return;
     }
-    adminMode = true;
-    document.getElementById('adminToggle').textContent = "🔓 Admin rejimi: YONIQ (narxlarni bosib tahrirlang)";
-    document.getElementById('adminToggle').classList.add('active');
-    document.getElementById('addPhoneBtn').style.display = "inline-block";
-    closeModal();
-    renderProducts();
+    const btn = document.getElementById('confirmAdminCode');
+    btn.textContent = "Tekshirilmoqda...";
+    fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ email, password, returnSecureToken: true })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if(!data.idToken){
+          alert("Email yoki parol xato.");
+          btn.textContent = "Kirish";
+          return;
+        }
+        firebaseIdToken = data.idToken;
+        adminMode = true;
+        document.getElementById('adminToggle').textContent = "🔓 Admin rejimi: YONIQ (narxlarni bosib tahrirlang)";
+        document.getElementById('adminToggle').classList.add('active');
+        document.getElementById('addPhoneBtn').style.display = "inline-block";
+        closeModal();
+        renderProducts();
+      })
+      .catch(() => {
+        alert("Internetga ulanishda xato yuz berdi.");
+        btn.textContent = "Kirish";
+      });
   };
   document.getElementById('confirmAdminCode').addEventListener('click', submit);
-  document.getElementById('adminCodeInput').addEventListener('keydown', (e) => {
+  document.getElementById('adminPassInput').addEventListener('keydown', (e) => {
     if(e.key === 'Enter') submit();
   });
 }
