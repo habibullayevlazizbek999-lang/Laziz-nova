@@ -335,6 +335,7 @@ footer .f-brand .dot{color:var(--coral);}
 .modal-overlay{
   position:fixed;inset:0;background:rgba(12,14,31,0.5);z-index:110;
   display:none;align-items:center;justify-content:center;padding:20px;
+  overflow-y:auto;
 }
 .modal-overlay.open{display:flex;}
 .detail-reviews{margin-top:22px;text-align:left;border-top:1px solid var(--line);padding-top:18px;}
@@ -362,6 +363,7 @@ footer .f-brand .dot{color:var(--coral);}
 .modal{
   background:var(--surface);border:1px solid var(--line);border-radius:20px;
   padding:32px;width:420px;max-width:100%;box-shadow:var(--shadow-lift);
+  max-height:calc(100vh - 40px);overflow-y:auto;margin:auto;
 }
 .modal h3{font-size:20px;margin-bottom:6px;color:var(--ink);}
 .modal p.sub{color:var(--ink-soft);font-size:13px;margin-bottom:22px;}
@@ -397,6 +399,12 @@ footer .f-brand .dot{color:var(--coral);}
   .trust{grid-template-columns:repeat(2,1fr);}
   nav{display:none;}
   .search-wrap{max-width:140px;}
+  .p-visual{height:150px;}
+  .grid{grid-template-columns:repeat(2,1fr);gap:12px;}
+  .modal{padding:22px;}
+}
+@media (max-width:480px){
+  .grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
