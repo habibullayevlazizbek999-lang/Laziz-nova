@@ -160,6 +160,22 @@ nav a:hover{color:var(--ink);}
 .section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:30px;flex-wrap:wrap;gap:12px;}
 .section-head h2{font-size:27px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;}
 .filters{display:flex;gap:9px;flex-wrap:wrap;}
+.discount-banner{
+  background:linear-gradient(90deg, rgba(255,107,91,0.15), rgba(61,220,151,0.1));
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:12px 5%;display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;
+  font-size:13.5px;color:var(--ink);
+}
+.discount-text strong{color:var(--coral);}
+.discount-timer{
+  font-family:'JetBrains Mono';font-weight:700;background:var(--navy-deep);
+  padding:4px 12px;border-radius:8px;color:var(--green);letter-spacing:1px;
+}
+.sort-select{
+  background:var(--surface);border:1.5px solid var(--line);border-radius:999px;
+  padding:7px 14px;font-size:13px;font-weight:500;color:var(--ink-soft);cursor:pointer;
+}
+.sort-select:focus{outline:none;border-color:var(--coral);}
 .filter-chip{
   background:var(--surface);border:1.5px solid var(--line);border-radius:999px;
   padding:7px 16px;font-size:13px;font-weight:500;cursor:pointer;color:var(--ink-soft);transition:all .15s;
@@ -197,6 +213,13 @@ nav a:hover{color:var(--ink);}
   font-size:12px;padding:7px 14px;border-radius:999px;cursor:pointer;font-weight:600;
 }
 .admin-toggle-btn.active{background:var(--amber);color:#1A1300;border-color:var(--amber);}
+.sold-today{
+  font-size:11px;color:var(--amber);font-weight:600;margin-bottom:10px;
+  display:flex;align-items:center;gap:4px;
+}
+.installment-text{
+  font-size:11.5px;color:var(--ink-soft);margin-top:8px;text-align:right;
+}
 .admin-img-upload{
   display:block;text-align:center;font-size:12px;font-weight:600;color:var(--amber);
   background:rgba(255,193,94,0.08);border:1.5px dashed var(--amber);border-radius:10px;
@@ -314,6 +337,12 @@ footer .f-brand .dot{color:var(--coral);}
   display:none;align-items:center;justify-content:center;padding:20px;
 }
 .modal-overlay.open{display:flex;}
+.detail-reviews{margin-top:22px;text-align:left;border-top:1px solid var(--line);padding-top:18px;}
+.detail-reviews h4{font-size:14px;margin-bottom:12px;color:var(--ink);}
+.review-row{margin-bottom:14px;}
+.review-name{font-size:13px;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;}
+.review-stars{color:var(--amber);font-size:11px;}
+.review-text{font-size:13px;color:var(--ink-soft);margin-top:3px;line-height:1.5;}
 .detail-modal{position:relative;text-align:center;}
 .detail-visual{display:flex;justify-content:center;margin-bottom:6px;}
 .detail-desc{font-size:13.5px;color:var(--ink-soft);line-height:1.65;text-align:left;margin-bottom:16px;}
@@ -415,10 +444,20 @@ footer .f-brand .dot{color:var(--coral);}
   </div>
 </section>
 
+<div class="discount-banner">
+  <span class="discount-text">🔥 Faqat bugun: tanlangan modellarga <strong>-10% chegirma</strong></span>
+  <span class="discount-timer" id="discountTimer">23:59:59</span>
+</div>
+
 <section class="section" id="katalog">
   <div class="section-head">
     <h2>Katalog</h2>
     <div class="filters" id="filters"></div>
+    <select id="sortSelect" class="sort-select">
+      <option value="default">Saralash</option>
+      <option value="price_asc">Narx: arzondan qimmatga</option>
+      <option value="price_desc">Narx: qimmatdan arzonga</option>
+    </select>
   </div>
   <div class="grid" id="productGrid"></div>
 </section>
@@ -788,6 +827,7 @@ loadCatalogAdditions().then(() =>
 ).then(() => renderProducts());
 favorites = loadFavorites(); // sevimlilar hozircha shaxsiy (brauzerga xos)
 let showOnlyFavorites = false;
+let sortOrder = "default"; // default | price_asc | price_desc
 let adminMode = false;
 
 const brandStyle = {
@@ -879,7 +919,7 @@ const categories = [
 const TELEGRAM_BOT_TOKEN = "8778338115:AAEVlY3PB854WQphlZmQH1gmWBjBtQP_ee4";
 const TELEGRAM_CHAT_ID = "7449247427";
 
-function sendOrderToTelegram(name, phone, addr, total, items){
+function sendOrderToTelegram(name, phone, addr, total, items, deliveryFee){
   if(TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN_HERE") return; // sozlanmagan, jim o'tkazib yuboramiz
 
   let itemsText = items.map(([key, qty]) => {
@@ -889,10 +929,13 @@ function sendOrderToTelegram(name, phone, addr, total, items){
     return `• ${p.name} (${variant[0]}) x${qty} — ${fmt(variant[1]*qty)}`;
   }).join('\n');
 
+  const deliveryLine = deliveryFee ? `🚚 Yetkazib berish: ${fmt(deliveryFee)}\n` : '';
+
   const text = `🛒 *Yangi buyurtma — NOVA Mobile*\n\n`
     + `👤 Ism: ${name}\n`
     + `📞 Tel: ${phone}\n`
-    + `📍 Manzil: ${addr || "kiritilmagan"}\n\n`
+    + `📍 Manzil: ${addr || "kiritilmagan"}\n`
+    + deliveryLine + `\n`
     + `${itemsText}\n\n`
     + `💰 Jami: ${fmt(total)}`;
 
@@ -938,6 +981,11 @@ function renderProducts(){
   if(showOnlyFavorites){
     list = list.filter(p => favorites.has(p.id));
   }
+  if(sortOrder === "price_asc"){
+    list = [...list].sort((a,b) => (a.variants[selectedVariant[a.id]||0][1]) - (b.variants[selectedVariant[b.id]||0][1]));
+  } else if(sortOrder === "price_desc"){
+    list = [...list].sort((a,b) => (b.variants[selectedVariant[b.id]||0][1]) - (a.variants[selectedVariant[a.id]||0][1]));
+  }
   if(list.length === 0){
     const msg = showOnlyFavorites ? "Sevimlilar ro'yxati bo'sh. Yurakcha bosib telefon qo'shing." : "Hech narsa topilmadi. Boshqa nom bilan qidirib ko'ring.";
     grid.innerHTML = `<div style="color:var(--ink-soft);padding:40px;grid-column:1/-1;text-align:center;">${msg}</div>`;
@@ -951,6 +999,10 @@ function renderProducts(){
     const priceField = adminMode
       ? `<input type="number" class="admin-price-input" data-id="${p.id}" data-vidx="${vIdx}" value="${p.variants[vIdx][1]}">`
       : `<div class="p-price" id="price-${p.id}">${fmt(p.variants[vIdx][1])}</div>`;
+    const monthly = Math.round(p.variants[vIdx][1] / 12 / 50000) * 50000;
+    const installmentText = `12 oyga ${fmt(monthly)}/oy`;
+    const boughtToday = 3 + ((p.id * 7 + new Date().getDate()) % 18);
+    const soldBadge = `<div class="sold-today">🔥 Bugun ${boughtToday} kishi sotib oldi</div>`;
     const imageUploadField = adminMode
       ? `<label class="admin-img-upload">📷 Rasm yuklash<input type="file" accept="image/*" class="admin-image-input" data-id="${p.id}" hidden></label>`
       : '';
@@ -967,11 +1019,13 @@ function renderProducts(){
       ${titleField}
       <div class="p-spec" data-detail-id="${p.id}" style="cursor:pointer;">${p.spec}</div>
       <div class="p-rating"><span class="stars">${stars}</span> ${p.rating} <span class="reviews-count">(${p.reviews} sharh)</span></div>
+      ${soldBadge}
       <select class="variant-select" data-id="${p.id}">${variantOptions}</select>
       <div class="p-bottom">
         ${priceField}
         <button class="add-btn" data-id="${p.id}">+</button>
       </div>
+      ${!adminMode ? `<div class="installment-text">${installmentText}</div>` : ''}
     </div>
   `;
   }).join('');
@@ -1024,6 +1078,24 @@ function renderProducts(){
 }
 
 
+const SAMPLE_REVIEW_TEXTS = [
+  ["Aziz", "Telefon juda zo'r, tezkor ishlaydi, batareyasi ham kun bo'yi yetadi. Tavsiya qilaman!"],
+  ["Malika", "Yetkazib berish tez bo'ldi, qutisi ham buzilmagan holda keldi. Telefon original ekan."],
+  ["Sardor", "Narxiga nisbatan juda yaxshi telefon. Kamerasi kutganimdan ham zo'r chiqdi."],
+  ["Dilnoza", "Ishlatishga qulay, ekrani yorqin. Faqat qutisi biroz kechikib keldi, lekin telefon a'lo."],
+  ["Bekzod", "Ikkinchi marta shu do'kondan telefon olyapman, hammasi rosa yaxshi, kafolat ham bor."],
+  ["Nilufar", "Do'stimga ham tavsiya qildim. Sifatli, original, narxi ham mos."],
+];
+function getSampleReviews(p){
+  // har bir telefon uchun deterministik (lekin turlicha) 3 ta sharh tanlaymiz
+  const start = p.id % SAMPLE_REVIEW_TEXTS.length;
+  const picked = [];
+  for(let i=0;i<3;i++){
+    picked.push(SAMPLE_REVIEW_TEXTS[(start+i) % SAMPLE_REVIEW_TEXTS.length]);
+  }
+  return picked;
+}
+
 function openProductDetail(id){
   const p = products.find(x => x.id === id);
   if(!p) return;
@@ -1051,6 +1123,15 @@ function openProductDetail(id){
       </div>
       <div class="detail-variants">${variantRows}</div>
       <button class="btn btn-primary" style="width:100%;margin-top:18px;" id="detailAddBtn">Savatchaga qo'shish</button>
+      <div class="detail-reviews">
+        <h4>Mijozlar sharhlari</h4>
+        ${getSampleReviews(p).map(([name, text]) => `
+          <div class="review-row">
+            <div class="review-name">${name} <span class="review-stars">★★★★★</span></div>
+            <div class="review-text">${text}</div>
+          </div>
+        `).join('')}
+      </div>
     </div>
   `;
   document.getElementById('modalOverlay').classList.add('open');
@@ -1291,6 +1372,24 @@ document.getElementById('cartToggle').addEventListener('click', openDrawer);
 document.getElementById('closeDrawer').addEventListener('click', closeDrawer);
 document.getElementById('overlay').addEventListener('click', closeDrawer);
 
+// Viloyatlarga yetkazib berish narxlari (so'mda)
+const DELIVERY_REGIONS = {
+  "Toshkent shahri": 0,
+  "Toshkent viloyati": 25000,
+  "Andijon": 35000,
+  "Farg'ona": 35000,
+  "Namangan": 35000,
+  "Samarqand": 30000,
+  "Buxoro": 35000,
+  "Navoiy": 35000,
+  "Qashqadaryo": 40000,
+  "Surxondaryo": 45000,
+  "Jizzax": 30000,
+  "Sirdaryo": 25000,
+  "Xorazm": 45000,
+  "Qoraqalpog'iston": 50000,
+};
+
 function openCheckout(){
   const items = Object.entries(cart);
   if(items.length === 0) return;
@@ -1301,12 +1400,28 @@ function openCheckout(){
     total += p.variants[vIdx][1] * qty;
   });
 
+  const regionOptions = Object.entries(DELIVERY_REGIONS).map(([name, fee]) =>
+    `<option value="${name}">${name} (${fee === 0 ? "tekin" : fmt(fee)})</option>`
+  ).join('');
+
   document.getElementById('modalContent').innerHTML = `
     <h3>Buyurtmani rasmiylashtirish</h3>
-    <p class="sub">Jami: <strong>${fmt(total)}</strong> — ma'lumotlaringizni kiriting</p>
+    <p class="sub">Mahsulotlar: <strong>${fmt(total)}</strong> — ma'lumotlaringizni kiriting</p>
     <div class="field"><label>To'liq ism</label><input type="text" id="custName" placeholder="Ism Familiya"></div>
     <div class="field"><label>Telefon raqam</label><input type="text" id="custPhone" placeholder="+998 90 123 45 67"></div>
-    <div class="field"><label>Yetkazib berish manzili</label><input type="text" id="custAddr" placeholder="Shahar, tuman, ko'cha"></div>
+    <div class="field">
+      <label>Viloyat / shahar</label>
+      <select id="custRegion" style="width:100%;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);font-size:14px;">
+        ${regionOptions}
+      </select>
+    </div>
+    <div class="field"><label>Manzil (tuman, ko'cha, uy)</label><input type="text" id="custAddr" placeholder="Tuman, ko'cha, uy raqami"></div>
+    <div class="total-row" id="checkoutTotalRow" style="margin-top:10px;">
+      <span>Yetkazib berish:</span><span id="deliveryFeeText">${fmt(0)}</span>
+    </div>
+    <div class="total-row" style="font-size:16px;">
+      <span>Jami:</span><span id="checkoutGrandTotal">${fmt(total)}</span>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" style="flex:1" id="cancelOrder">Bekor qilish</button>
       <button class="btn btn-primary" style="flex:1" id="confirmOrder">Tasdiqlash</button>
@@ -1314,10 +1429,24 @@ function openCheckout(){
   `;
   document.getElementById('modalOverlay').classList.add('open');
   document.getElementById('cancelOrder').addEventListener('click', closeModal);
-  document.getElementById('confirmOrder').addEventListener('click', () => confirmOrder(total));
+
+  const updateDelivery = () => {
+    const region = document.getElementById('custRegion').value;
+    const fee = DELIVERY_REGIONS[region] || 0;
+    document.getElementById('deliveryFeeText').textContent = fee === 0 ? "Tekin" : fmt(fee);
+    document.getElementById('checkoutGrandTotal').textContent = fmt(total + fee);
+  };
+  document.getElementById('custRegion').addEventListener('change', updateDelivery);
+  updateDelivery();
+
+  document.getElementById('confirmOrder').addEventListener('click', () => {
+    const region = document.getElementById('custRegion').value;
+    const fee = DELIVERY_REGIONS[region] || 0;
+    confirmOrder(total + fee, region, fee);
+  });
 }
 
-function confirmOrder(total){
+function confirmOrder(total, region, deliveryFee){
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
   const addr = document.getElementById('custAddr').value.trim();
@@ -1326,13 +1455,14 @@ function confirmOrder(total){
     return;
   }
 
-  sendOrderToTelegram(name, phone, addr, total, Object.entries(cart));
+  const fullAddr = `${region}, ${addr}`;
+  sendOrderToTelegram(name, phone, fullAddr, total, Object.entries(cart), deliveryFee);
 
   document.getElementById('modalContent').innerHTML = `
     <div class="success">
       <div class="check">✓</div>
       <h3>Buyurtma qabul qilindi!</h3>
-      <p class="sub">Rahmat, ${name}! Tez orada operatorlarimiz ${phone} raqamiga qo'ng'iroq qilishadi.<br>Jami summa: ${fmt(total)}</p>
+      <p class="sub">Rahmat, ${name}! Tez orada operatorlarimiz ${phone} raqamiga qo'ng'iroq qilishadi.<br>Yetkazib berish: ${region}${deliveryFee>0?` (+${fmt(deliveryFee)})`:''}<br>Jami summa: ${fmt(total)}</p>
       <button class="btn btn-primary" style="width:100%;margin-top:10px" id="closeSuccess">Yopish</button>
     </div>
   `;
@@ -1353,11 +1483,30 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => {
   if(e.target.id === 'modalOverlay') closeModal();
 });
 
+document.getElementById('sortSelect').addEventListener('change', (e) => {
+  sortOrder = e.target.value;
+  renderProducts();
+});
+
 renderFilters();
 renderProducts();
 renderCart();
 
 // Status bar va qulflangan ekran soati — haqiqiy vaqtni ko'rsatadi
+function tickDiscountTimer(){
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24,0,0,0);
+  const diff = midnight - now;
+  const h = Math.floor(diff/3600000).toString().padStart(2,'0');
+  const m = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
+  const s = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
+  const el = document.getElementById('discountTimer');
+  if(el) el.textContent = `${h}:${m}:${s}`;
+}
+tickDiscountTimer();
+setInterval(tickDiscountTimer, 1000);
+
 function tickClock(){
   const now = new Date();
   const h = now.getHours().toString().padStart(2,'0');
