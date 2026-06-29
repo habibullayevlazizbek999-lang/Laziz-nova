@@ -33,6 +33,25 @@
   --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.5);
   --shadow-lift:0 4px 10px rgba(0,0,0,0.35), 0 24px 48px -16px rgba(0,0,0,0.6);
 }
+:root[data-theme="light"]{
+  --paper:#F4F5F8;
+  --surface:#FFFFFF;
+  --ink:#11142B;
+  --ink-soft:#5B5F78;
+  --line:#E4E6EE;
+  --navy-deep:#11142B;
+  --shadow:0 1px 2px rgba(17,20,43,0.04), 0 8px 24px -8px rgba(17,20,43,0.10);
+  --shadow-lift:0 4px 10px rgba(17,20,43,0.06), 0 20px 40px -16px rgba(17,20,43,0.18);
+}
+body{transition:background-color .25s, color .25s;}
+.lang-select{
+  background:var(--surface);border:1.5px solid var(--line);color:var(--ink);
+  border-radius:999px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;
+}
+.theme-toggle-btn{
+  background:var(--surface);border:1.5px solid var(--line);color:var(--ink);
+  border-radius:999px;width:40px;height:40px;font-size:16px;cursor:pointer;
+}
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
 body{
@@ -427,6 +446,8 @@ footer .f-brand .dot{color:var(--coral);}
 @media (max-width:780px){
   header{flex-wrap:wrap;}
   .search-wrap{order:3;max-width:100%;flex:1 0 100%;margin-top:6px;}
+  .lang-select{padding:8px 8px;font-size:12px;}
+  .theme-toggle-btn{width:36px;height:36px;font-size:14px;}
   .hero{grid-template-columns:1fr;}
   .hero-visual{order:-1;}
   .trust{grid-template-columns:repeat(2,1fr);}
@@ -454,66 +475,72 @@ footer .f-brand .dot{color:var(--coral);}
 <header>
   <div class="logo"><span class="dot"></span>NOVA</div>
   <nav>
-    <a href="#katalog">Katalog</a>
-    <a href="#trust">Kafolat</a>
-    <a href="#footer">Aloqa</a>
+    <a href="#katalog" data-i18n="nav_catalog">Katalog</a>
+    <a href="#trust" data-i18n="nav_warranty">Kafolat</a>
+    <a href="#footer" data-i18n="nav_contact">Aloqa</a>
   </nav>
   <div class="search-wrap">
-    <input type="text" id="searchInput" placeholder="Telefon qidirish... (masalan: iPhone, Samsung)">
+    <input type="text" id="searchInput" placeholder="Telefon qidirish... (masalan: iPhone, Samsung)" data-i18n-ph="search_ph">
   </div>
+  <select id="langSelect" class="lang-select">
+    <option value="uz">UZ</option>
+    <option value="ru">RU</option>
+    <option value="en">EN</option>
+  </select>
+  <button id="themeToggle" class="theme-toggle-btn" title="Tun/Kun rejimi">🌙</button>
   <button class="cart-btn" id="cartToggle">
-    🛒 Savatcha <span class="cart-count" id="cartCount">0</span>
+    🛒 <span data-i18n="cart">Savatcha</span> <span class="cart-count" id="cartCount">0</span>
   </button>
 </header>
 
 <section class="hero">
   <div>
-    <div class="eyebrow">Yangi kolleksiya • 2026</div>
-    <h1>Qo'lingizga mos <em>smartfon</em> shu yerda.</h1>
-    <p>Original telefonlar, rasmiy kafolat va tezkor yetkazib berish. Toshkent bo'yicha bugun buyurtma — ertaga uyingizda.</p>
+    <div class="eyebrow" data-i18n="hero_eyebrow">Yangi kolleksiya • 2026</div>
+    <h1 data-i18n-html="hero_h1">Qo'lingizga mos <em>smartfon</em> shu yerda.</h1>
+    <p data-i18n="hero_sub">Original telefonlar, rasmiy kafolat va tezkor yetkazib berish. Toshkent bo'yicha bugun buyurtma — ertaga uyingizda.</p>
     <div class="hero-cta">
-      <button class="btn btn-primary" onclick="document.getElementById('katalog').scrollIntoView({behavior:'smooth'})">Katalogni ko'rish</button>
-      <a href="#trust"><button class="btn btn-ghost">Kafolat shartlari</button></a>
+      <button class="btn btn-primary" data-i18n="hero_cta1" onclick="document.getElementById('katalog').scrollIntoView({behavior:'smooth'})">Katalogni ko'rish</button>
+      <a href="#trust"><button class="btn btn-ghost" data-i18n="hero_cta2">Kafolat shartlari</button></a>
     </div>
   </div>
   <div class="hero-visual">
     <div class="phone-mock">
       <div class="lock-time" id="lockTime">9:41</div>
       <div class="lock-date" id="lockDate">Seshanba, 23-iyun</div>
-      <div class="lock-hint">Tepaga suring — katalogni oching</div>
+      <div class="lock-hint" data-i18n="hero_hint">Tepaga suring — katalogni oching</div>
     </div>
   </div>
 </section>
 
 <div class="discount-banner">
-  <span class="discount-text">🔥 Faqat bugun: tanlangan modellarga <strong>-10% chegirma</strong></span>
+  <span class="discount-text" data-i18n-html="discount_text">🔥 Faqat bugun: tanlangan modellarga <strong>-10% chegirma</strong></span>
   <span class="discount-timer" id="discountTimer">23:59:59</span>
 </div>
 
 <section class="section" id="katalog">
   <div class="section-head">
-    <h2>Katalog</h2>
-    <button class="orders-link-btn" onclick="openMyOrders()">📦 Buyurtmalarim</button>
+    <h2 data-i18n="catalog_title">Katalog</h2>
+    <button class="orders-link-btn" onclick="openMyOrders()">📦 <span data-i18n="my_orders">Buyurtmalarim</span></button>
     <div class="filters" id="filters"></div>
     <select id="sortSelect" class="sort-select">
-      <option value="default">Saralash</option>
-      <option value="price_asc">Narx: arzondan qimmatga</option>
-      <option value="price_desc">Narx: qimmatdan arzonga</option>
+      <option value="default" data-i18n="sort_default">Saralash</option>
+      <option value="price_asc" data-i18n="sort_asc">Narx: arzondan qimmatga</option>
+      <option value="price_desc" data-i18n="sort_desc">Narx: qimmatdan arzonga</option>
     </select>
   </div>
   <div class="grid" id="productGrid"></div>
 </section>
 
 <section class="trust" id="trust">
-  <div class="trust-item"><div class="num">12 oy</div><div class="label">Rasmiy kafolat</div></div>
-  <div class="trust-item"><div class="num">24/7</div><div class="label">Mijozlarni qo'llab-quvvatlash</div></div>
-  <div class="trust-item"><div class="num">1 kun</div><div class="label">Toshkent bo'yicha yetkazish</div></div>
-  <div class="trust-item"><div class="num">100%</div><div class="label">Original mahsulot</div></div>
+  <div class="trust-item"><div class="num">12 oy</div><div class="label" data-i18n="trust_1">Rasmiy kafolat</div></div>
+  <div class="trust-item"><div class="num">24/7</div><div class="label" data-i18n="trust_2">Mijozlarni qo'llab-quvvatlash</div></div>
+  <div class="trust-item"><div class="num">1 kun</div><div class="label" data-i18n="trust_3">Toshkent bo'yicha yetkazish</div></div>
+  <div class="trust-item"><div class="num">100%</div><div class="label" data-i18n="trust_4">Original mahsulot</div></div>
 </section>
 
 <footer id="footer">
   <div class="f-brand">NOVA<span class="dot">.</span> Mobile</div>
-  <div>Toshkent shahri · <a href="https://t.me/nova_mobile_shop_bot" target="_blank" style="color:var(--green);font-weight:600;">🤖 Telegram bot</a> · Aloqa: <a href="tel:+998900110813" style="color:var(--coral);font-weight:600;">+998 90 011 08 13</a></div>
+  <div><span data-i18n="footer_city">Toshkent shahri</span> · <a href="https://t.me/nova_mobile_shop_bot" target="_blank" style="color:var(--green);font-weight:600;">🤖 Telegram bot</a> · <span data-i18n="footer_contact">Aloqa</span>: <a href="tel:+998900110813" style="color:var(--coral);font-weight:600;">+998 90 011 08 13</a></div>
   <button id="adminToggle" class="admin-toggle-btn" onclick="toggleAdminMode()">🔒 Admin rejimi</button>
   <button id="addPhoneBtn" class="admin-toggle-btn" style="display:none;" onclick="openAddPhoneForm()">➕ Yangi telefon qo'shish</button>
 </footer>
@@ -521,13 +548,13 @@ footer .f-brand .dot{color:var(--coral);}
 <div class="overlay" id="overlay"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-head">
-    <h3>Savatcha</h3>
+    <h3 data-i18n="cart">Savatcha</h3>
     <button class="close-btn" id="closeDrawer">✕</button>
   </div>
   <div class="cart-items" id="cartItems"></div>
   <div class="drawer-foot">
-    <div class="total-row"><span>Jami:</span><span id="cartTotal">0 so'm</span></div>
-    <button class="btn btn-primary checkout-btn" id="checkoutBtn">Buyurtmani rasmiylashtirish</button>
+    <div class="total-row"><span data-i18n="total">Jami:</span><span id="cartTotal">0 so'm</span></div>
+    <button class="btn btn-primary checkout-btn" id="checkoutBtn" data-i18n="checkout_btn">Buyurtmani rasmiylashtirish</button>
   </div>
 </div>
 
@@ -536,6 +563,84 @@ footer .f-brand .dot{color:var(--coral);}
 </div>
 
 <script>
+// ===== Til (i18n) =====
+const I18N = {
+  uz: {
+    nav_catalog: "Katalog", nav_warranty: "Kafolat", nav_contact: "Aloqa",
+    cart: "Savatcha", my_orders: "Buyurtmalarim",
+    search_ph: "Telefon qidirish... (masalan: iPhone, Samsung)",
+    hero_eyebrow: "Yangi kolleksiya • 2026",
+    hero_h1: "Qo'lingizga mos <em>smartfon</em> shu yerda.",
+    hero_sub: "Original telefonlar, rasmiy kafolat va tezkor yetkazib berish. Toshkent bo'yicha bugun buyurtma — ertaga uyingizda.",
+    hero_cta1: "Katalogni ko'rish", hero_cta2: "Kafolat shartlari",
+    hero_hint: "Tepaga suring — katalogni oching",
+    discount_text: "🔥 Faqat bugun: tanlangan modellarga <strong>-10% chegirma</strong>",
+    catalog_title: "Katalog",
+    sort_default: "Saralash", sort_asc: "Narx: arzondan qimmatga", sort_desc: "Narx: qimmatdan arzonga",
+    trust_1: "Rasmiy kafolat", trust_2: "Mijozlarni qo'llab-quvvatlash", trust_3: "Toshkent bo'yicha yetkazish", trust_4: "Original mahsulot",
+    footer_city: "Toshkent shahri", footer_contact: "Aloqa",
+    total: "Jami:", checkout_btn: "Buyurtmani rasmiylashtirish",
+  },
+  ru: {
+    nav_catalog: "Каталог", nav_warranty: "Гарантия", nav_contact: "Контакты",
+    cart: "Корзина", my_orders: "Мои заказы",
+    search_ph: "Поиск телефона... (например: iPhone, Samsung)",
+    hero_eyebrow: "Новая коллекция • 2026",
+    hero_h1: "Смартфон под вас <em>здесь</em>.",
+    hero_sub: "Оригинальные телефоны, официальная гарантия и быстрая доставка. Заказ сегодня по Ташкенту — доставка завтра.",
+    hero_cta1: "Смотреть каталог", hero_cta2: "Условия гарантии",
+    hero_hint: "Свайп вверх — открыть каталог",
+    discount_text: "🔥 Только сегодня: <strong>скидка -10%</strong> на выбранные модели",
+    catalog_title: "Каталог",
+    sort_default: "Сортировка", sort_asc: "Цена: по возрастанию", sort_desc: "Цена: по убыванию",
+    trust_1: "Официальная гарантия", trust_2: "Поддержка клиентов", trust_3: "Доставка по Ташкенту", trust_4: "Оригинальный товар",
+    footer_city: "г. Ташкент", footer_contact: "Контакты",
+    total: "Итого:", checkout_btn: "Оформить заказ",
+  },
+  en: {
+    nav_catalog: "Catalog", nav_warranty: "Warranty", nav_contact: "Contact",
+    cart: "Cart", my_orders: "My Orders",
+    search_ph: "Search phones... (e.g. iPhone, Samsung)",
+    hero_eyebrow: "New collection • 2026",
+    hero_h1: "The right <em>smartphone</em> is here.",
+    hero_sub: "Original phones, official warranty, and fast delivery. Order today in Tashkent — get it tomorrow.",
+    hero_cta1: "Browse catalog", hero_cta2: "Warranty terms",
+    hero_hint: "Swipe up to open catalog",
+    discount_text: "🔥 Today only: <strong>-10% off</strong> selected models",
+    catalog_title: "Catalog",
+    sort_default: "Sort", sort_asc: "Price: low to high", sort_desc: "Price: high to low",
+    trust_1: "Official warranty", trust_2: "Customer support", trust_3: "Delivery in Tashkent", trust_4: "Genuine product",
+    footer_city: "Tashkent city", footer_contact: "Contact",
+    total: "Total:", checkout_btn: "Place order",
+  },
+};
+
+let currentLang = "uz";
+
+function applyLanguage(lang){
+  currentLang = lang;
+  const dict = I18N[lang] || I18N.uz;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if(dict[key] !== undefined) el.textContent = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    if(dict[key] !== undefined) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.getAttribute('data-i18n-ph');
+    if(dict[key] !== undefined) el.placeholder = dict[key];
+  });
+  safeSet('nova_lang', lang);
+}
+
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeToggle').textContent = theme === 'light' ? '☀️' : '🌙';
+  safeSet('nova_theme', theme);
+}
+
 const USD = 12700;
 const u = (d) => Math.round(d*USD/50000)*50000;
 
@@ -1681,6 +1786,19 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => {
 document.getElementById('sortSelect').addEventListener('change', (e) => {
   sortOrder = e.target.value;
   renderProducts();
+});
+
+// Til va tema sozlamalarini ishga tushirish
+const savedLang = safeGet('nova_lang') || 'uz';
+document.getElementById('langSelect').value = savedLang;
+applyLanguage(savedLang);
+document.getElementById('langSelect').addEventListener('change', (e) => applyLanguage(e.target.value));
+
+const savedTheme = safeGet('nova_theme') || 'dark';
+applyTheme(savedTheme);
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  applyTheme(next);
 });
 
 renderFilters();
