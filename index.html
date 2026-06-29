@@ -171,6 +171,12 @@ nav a:hover{color:var(--ink);}
 .section{padding:64px 5%;}
 .section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:30px;flex-wrap:wrap;gap:12px;}
 .section-head h2{font-size:27px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;}
+.orders-link-btn{
+  background:var(--surface);border:1.5px solid var(--line);color:var(--ink);
+  border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;
+  transition:border-color .15s;margin-right:auto;
+}
+.orders-link-btn:hover{border-color:var(--coral);}
 .filters{display:flex;gap:9px;flex-wrap:wrap;}
 .discount-banner{
   background:linear-gradient(90deg, rgba(255,107,91,0.15), rgba(61,220,151,0.1));
@@ -350,6 +356,15 @@ footer .f-brand .dot{color:var(--coral);}
   overflow-y:auto;
 }
 .modal-overlay.open{display:flex;}
+.orders-list{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+.order-history-row{
+  background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-align:left;
+}
+.order-history-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;}
+.order-date{color:var(--ink-soft);}
+.order-status{color:var(--green);font-weight:600;}
+.order-items{font-size:13px;color:var(--ink);margin-bottom:4px;}
+.order-total{font-family:'JetBrains Mono';font-weight:700;font-size:14px;color:var(--coral);}
 .detail-reviews{margin-top:22px;text-align:left;border-top:1px solid var(--line);padding-top:18px;}
 .detail-reviews h4{font-size:14px;margin-bottom:12px;color:var(--ink);}
 .review-row{margin-bottom:14px;}
@@ -474,6 +489,7 @@ footer .f-brand .dot{color:var(--coral);}
 <section class="section" id="katalog">
   <div class="section-head">
     <h2>Katalog</h2>
+    <button class="orders-link-btn" onclick="openMyOrders()">📦 Buyurtmalarim</button>
     <div class="filters" id="filters"></div>
     <select id="sortSelect" class="sort-select">
       <option value="default">Saralash</option>
@@ -1468,6 +1484,91 @@ function openCheckout(){
   });
 }
 
+// ===== Mening buyurtmalarim (mijoz tarixi) =====
+function normalizePhone(phone){
+  return phone.replace(/\D/g, ''); // faqat raqamlarni qoldiramiz, taqqoslash uchun
+}
+
+function saveOrderToHistory(name, phone, addr, total, items){
+  const itemsSummary = items.map(([key, qty]) => {
+    const [id, vIdx] = key.split('-').map(Number);
+    const p = products.find(x => x.id === id);
+    const variant = p ? p.variants[vIdx] : null;
+    return variant ? `${p.name} (${variant[0]}) x${qty}` : `#${id} x${qty}`;
+  });
+  const order = {
+    name, phone, phoneNorm: normalizePhone(phone), addr, total,
+    items: itemsSummary, date: new Date().toISOString(), status: "Qabul qilindi"
+  };
+  fetch(`${FIREBASE_DB_URL}/orders.json`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(order)
+  }).catch(err => console.error("Buyurtma tarixini saqlashda xato:", err));
+}
+
+function openMyOrders(){
+  document.getElementById('modalContent').innerHTML = `
+    <h3>📦 Mening buyurtmalarim</h3>
+    <p class="sub">Buyurtma berishda kiritgan telefon raqamingizni yozing</p>
+    <div class="field"><input type="text" id="myOrdersPhone" placeholder="+998 90 123 45 67" autofocus></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" id="cancelMyOrders">Bekor qilish</button>
+      <button class="btn btn-primary" style="flex:1" id="searchMyOrders">Qidirish</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('cancelMyOrders').addEventListener('click', closeModal);
+  const search = () => {
+    const phone = document.getElementById('myOrdersPhone').value.trim();
+    if(!phone){ alert("Telefon raqamini kiriting."); return; }
+    const norm = normalizePhone(phone);
+    fetch(`${FIREBASE_DB_URL}/orders.json`)
+      .then(res => res.json())
+      .then(data => {
+        const all = data ? Object.values(data) : [];
+        const mine = all.filter(o => o.phoneNorm === norm).sort((a,b) => new Date(b.date) - new Date(a.date));
+        renderMyOrders(mine);
+      })
+      .catch(() => alert("Internetga ulanishda xato yuz berdi."));
+  };
+  document.getElementById('searchMyOrders').addEventListener('click', search);
+  document.getElementById('myOrdersPhone').addEventListener('keydown', (e) => { if(e.key === 'Enter') search(); });
+}
+
+function renderMyOrders(orders){
+  if(orders.length === 0){
+    document.getElementById('modalContent').innerHTML = `
+      <h3>📦 Mening buyurtmalarim</h3>
+      <p class="sub">Bu raqam bo'yicha buyurtma topilmadi.</p>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px" id="closeMyOrders">Yopish</button>
+    `;
+    document.getElementById('closeMyOrders').addEventListener('click', closeModal);
+    return;
+  }
+  const rows = orders.map(o => {
+    const d = new Date(o.date);
+    const dateStr = d.toLocaleDateString('uz-UZ') + " " + d.toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
+    return `
+      <div class="order-history-row">
+        <div class="order-history-head">
+          <span class="order-date">${dateStr}</span>
+          <span class="order-status">${o.status || "Qabul qilindi"}</span>
+        </div>
+        <div class="order-items">${o.items.join(', ')}</div>
+        <div class="order-total">${fmt(o.total)}</div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('modalContent').innerHTML = `
+    <h3>📦 Mening buyurtmalarim</h3>
+    <p class="sub">${orders.length} ta buyurtma topildi</p>
+    <div class="orders-list">${rows}</div>
+    <button class="btn btn-primary" style="width:100%;margin-top:14px" id="closeMyOrders">Yopish</button>
+  `;
+  document.getElementById('closeMyOrders').addEventListener('click', closeModal);
+}
+
 function confirmOrder(total, region, deliveryFee){
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
@@ -1479,6 +1580,7 @@ function confirmOrder(total, region, deliveryFee){
 
   const fullAddr = `${region}, ${addr}`;
   sendOrderToTelegram(name, phone, fullAddr, total, Object.entries(cart), deliveryFee);
+  saveOrderToHistory(name, phone, fullAddr, total, Object.entries(cart));
 
   document.getElementById('modalContent').innerHTML = `
     <div class="success">
