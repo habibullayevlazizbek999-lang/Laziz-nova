@@ -356,6 +356,10 @@ footer .f-brand .dot{color:var(--coral);}
   overflow-y:auto;
 }
 .modal-overlay.open{display:flex;}
+.change-number-link{
+  text-align:center;font-size:12.5px;color:var(--ink-soft);margin-top:12px;cursor:pointer;text-decoration:underline;
+}
+.change-number-link:hover{color:var(--coral);}
 .orders-list{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
 .order-history-row{
   background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-align:left;
@@ -1507,7 +1511,35 @@ function saveOrderToHistory(name, phone, addr, total, items){
   }).catch(err => console.error("Buyurtma tarixini saqlashda xato:", err));
 }
 
+function openMyOrdersFresh(){
+  document.getElementById('modalContent').innerHTML = `
+    <h3>📦 Mening buyurtmalarim</h3>
+    <p class="sub">Buyurtma berishda kiritgan telefon raqamingizni yozing</p>
+    <div class="field"><input type="text" id="myOrdersPhone" placeholder="+998 90 123 45 67" autofocus></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" id="cancelMyOrders">Bekor qilish</button>
+      <button class="btn btn-primary" style="flex:1" id="searchMyOrders">Qidirish</button>
+    </div>
+  `;
+  document.getElementById('cancelMyOrders').addEventListener('click', closeModal);
+  const search = () => {
+    const phone = document.getElementById('myOrdersPhone').value.trim();
+    if(!phone){ alert("Telefon raqamini kiriting."); return; }
+    safeSet('nova_my_phone', phone);
+    fetchMyOrders(phone);
+  };
+  document.getElementById('searchMyOrders').addEventListener('click', search);
+  document.getElementById('myOrdersPhone').addEventListener('keydown', (e) => { if(e.key === 'Enter') search(); });
+}
+
 function openMyOrders(){
+  const savedPhone = safeGet('nova_my_phone');
+  if(savedPhone){
+    document.getElementById('modalContent').innerHTML = `<h3>📦 Mening buyurtmalarim</h3><p class="sub">Yuklanmoqda...</p>`;
+    document.getElementById('modalOverlay').classList.add('open');
+    fetchMyOrders(savedPhone);
+    return;
+  }
   document.getElementById('modalContent').innerHTML = `
     <h3>📦 Mening buyurtmalarim</h3>
     <p class="sub">Buyurtma berishda kiritgan telefon raqamingizni yozing</p>
@@ -1522,28 +1554,36 @@ function openMyOrders(){
   const search = () => {
     const phone = document.getElementById('myOrdersPhone').value.trim();
     if(!phone){ alert("Telefon raqamini kiriting."); return; }
-    const norm = normalizePhone(phone);
-    fetch(`${FIREBASE_DB_URL}/orders.json`)
-      .then(res => res.json())
-      .then(data => {
-        const all = data ? Object.values(data) : [];
-        const mine = all.filter(o => o.phoneNorm === norm).sort((a,b) => new Date(b.date) - new Date(a.date));
-        renderMyOrders(mine);
-      })
-      .catch(() => alert("Internetga ulanishda xato yuz berdi."));
+    safeSet('nova_my_phone', phone); // keyingi safar so'ramaslik uchun saqlaymiz
+    fetchMyOrders(phone);
   };
   document.getElementById('searchMyOrders').addEventListener('click', search);
   document.getElementById('myOrdersPhone').addEventListener('keydown', (e) => { if(e.key === 'Enter') search(); });
 }
 
-function renderMyOrders(orders){
+function fetchMyOrders(phone){
+  const norm = normalizePhone(phone);
+  fetch(`${FIREBASE_DB_URL}/orders.json`)
+    .then(res => res.json())
+    .then(data => {
+      const all = data ? Object.values(data) : [];
+      const mine = all.filter(o => o.phoneNorm === norm).sort((a,b) => new Date(b.date) - new Date(a.date));
+      renderMyOrders(mine, phone);
+    })
+    .catch(() => alert("Internetga ulanishda xato yuz berdi."));
+}
+
+function renderMyOrders(orders, phone){
+  const changeNumberLink = `<div class="change-number-link" id="changeNumberLink">Boshqa raqam bilan qidirish</div>`;
   if(orders.length === 0){
     document.getElementById('modalContent').innerHTML = `
       <h3>📦 Mening buyurtmalarim</h3>
       <p class="sub">Bu raqam bo'yicha buyurtma topilmadi.</p>
       <button class="btn btn-primary" style="width:100%;margin-top:10px" id="closeMyOrders">Yopish</button>
+      ${changeNumberLink}
     `;
     document.getElementById('closeMyOrders').addEventListener('click', closeModal);
+    document.getElementById('changeNumberLink').addEventListener('click', () => { safeSet('nova_my_phone', ''); openMyOrdersFresh(); });
     return;
   }
   const rows = orders.map(o => {
@@ -1565,8 +1605,10 @@ function renderMyOrders(orders){
     <p class="sub">${orders.length} ta buyurtma topildi</p>
     <div class="orders-list">${rows}</div>
     <button class="btn btn-primary" style="width:100%;margin-top:14px" id="closeMyOrders">Yopish</button>
+    ${changeNumberLink}
   `;
   document.getElementById('closeMyOrders').addEventListener('click', closeModal);
+  document.getElementById('changeNumberLink').addEventListener('click', () => { safeSet('nova_my_phone', ''); openMyOrdersFresh(); });
 }
 
 function confirmOrder(total, region, deliveryFee){
