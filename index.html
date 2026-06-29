@@ -1611,12 +1611,41 @@ function renderMyOrders(orders, phone){
   document.getElementById('changeNumberLink').addEventListener('click', () => { safeSet('nova_my_phone', ''); openMyOrdersFresh(); });
 }
 
+function isValidFullName(name){
+  // kamida 2 so'z (Ism Familiya), har biri faqat harflardan, kamida 2 harf
+  const parts = name.trim().split(/\s+/);
+  if(parts.length < 2) return false;
+  const nameRegex = /^[A-Za-zА-Яа-яЎўҚқҲҳҒғЁёЭэ'\u02BB\u2019-]{2,}$/;
+  return parts.every(p => nameRegex.test(p));
+}
+
+function isValidPhone(phone){
+  const digits = phone.replace(/\D/g, '');
+  // 998901234567 (12 raqam) yoki 901234567 (9 raqam) qabul qilinadi
+  const local = digits.length === 12 && digits.startsWith('998') ? digits.slice(3) : digits;
+  if(local.length !== 9) return false;
+  const validPrefixes = ['90','91','93','94','95','97','98','99','33','88','20'];
+  return validPrefixes.includes(local.slice(0,2));
+}
+
 function confirmOrder(total, region, deliveryFee){
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
   const addr = document.getElementById('custAddr').value.trim();
   if(!name || !phone){
     alert("Iltimos, ism va telefon raqamingizni kiriting.");
+    return;
+  }
+  if(!isValidFullName(name)){
+    alert("Iltimos, to'liq ism va familiyangizni kiriting (masalan: Aziz Karimov). Raqam yoki belgilarsiz, faqat harflar.");
+    return;
+  }
+  if(!isValidPhone(phone)){
+    alert("Iltimos, to'g'ri telefon raqam kiriting (masalan: +998 90 123 45 67).");
+    return;
+  }
+  if(!addr || addr.length < 5){
+    alert("Iltimos, to'liq manzil kiriting (tuman, ko'cha, uy raqami).");
     return;
   }
 
