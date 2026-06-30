@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NOVA — Smartfonlar do'koni</title>
 
+<!-- PWA: telefon ekraniga ilova sifatida o'rnatish uchun -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0F1124">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NOVA Mobile">
+
 <!-- Link guruh/chatga tashlanganda chiroyli ko'rinish uchun -->
 <meta name="description" content="Original iPhone, Samsung, Xiaomi va boshqa smartfonlar. Rasmiy kafolat, tezkor yetkazib berish, Toshkent va viloyatlar bo'yicha.">
 <meta property="og:type" content="website">
@@ -394,6 +403,16 @@ footer .f-brand .dot{color:var(--coral);}
 .review-name{font-size:13px;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;}
 .review-stars{color:var(--amber);font-size:11px;}
 .review-text{font-size:13px;color:var(--ink-soft);margin-top:3px;line-height:1.5;}
+.review-form{margin-top:12px;padding:14px;background:var(--paper);border-radius:12px;border:1px solid var(--line);}
+.star-picker{display:flex;gap:4px;margin-bottom:10px;font-size:24px;}
+.star-pick{color:var(--line);cursor:pointer;transition:color .1s;}
+.star-pick.active{color:var(--amber);}
+.review-input, .review-textarea{
+  width:100%;padding:9px 11px;border-radius:8px;border:1.5px solid var(--line);
+  background:var(--surface);color:var(--ink);font-size:13px;margin-bottom:8px;font-family:inherit;
+}
+.review-textarea{min-height:70px;resize:vertical;}
+.review-input:focus, .review-textarea:focus{outline:none;border-color:var(--coral);}
 .detail-modal{position:relative;text-align:center;}
 .detail-visual{display:flex;justify-content:center;margin-bottom:6px;}
 .detail-desc{font-size:13.5px;color:var(--ink-soft);line-height:1.65;text-align:left;margin-bottom:16px;}
@@ -419,6 +438,13 @@ footer .f-brand .dot{color:var(--coral);}
 .modal p.sub{color:var(--ink-soft);font-size:13px;margin-bottom:22px;}
 .field{margin-bottom:14px;}
 .field label{font-size:12px;color:var(--ink-soft);display:block;margin-bottom:6px;font-weight:500;}
+.promo-row{display:flex;gap:8px;}
+.promo-row input{flex:1;}
+.promo-msg{font-size:12px;margin-top:6px;}
+.promo-msg.success{color:var(--green);}
+.promo-msg.error{color:var(--coral);}
+.referral-box{background:var(--paper);border:1.5px dashed var(--coral);border-radius:12px;padding:18px;text-align:center;}
+.referral-code{font-family:'JetBrains Mono';font-size:22px;font-weight:700;color:var(--coral);letter-spacing:2px;}
 .field input{
   width:100%;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);
   background:var(--paper);color:var(--ink);font-size:14px;
@@ -488,6 +514,7 @@ footer .f-brand .dot{color:var(--coral);}
     <option value="en">EN</option>
   </select>
   <button id="themeToggle" class="theme-toggle-btn" title="Tun/Kun rejimi">🌙</button>
+  <button id="installAppBtn" class="theme-toggle-btn" style="display:none;width:auto;padding:0 14px;font-size:12px;" onclick="installApp()">📲 O'rnatish</button>
   <button class="cart-btn" id="cartToggle">
     🛒 <span data-i18n="cart">Savatcha</span> <span class="cart-count" id="cartCount">0</span>
   </button>
@@ -521,6 +548,7 @@ footer .f-brand .dot{color:var(--coral);}
   <div class="section-head">
     <h2 data-i18n="catalog_title">Katalog</h2>
     <button class="orders-link-btn" onclick="openMyOrders()">📦 <span data-i18n="my_orders">Buyurtmalarim</span></button>
+    <button class="orders-link-btn" onclick="openReferral()">🎁 Do'stni taklif qiling</button>
     <div class="filters" id="filters"></div>
     <select id="sortSelect" class="sort-select">
       <option value="default" data-i18n="sort_default">Saralash</option>
@@ -580,6 +608,25 @@ const I18N = {
     trust_1: "Rasmiy kafolat", trust_2: "Mijozlarni qo'llab-quvvatlash", trust_3: "Toshkent bo'yicha yetkazish", trust_4: "Original mahsulot",
     footer_city: "Toshkent shahri", footer_contact: "Aloqa",
     total: "Jami:", checkout_btn: "Buyurtmani rasmiylashtirish",
+    currency: "so'm",
+    reviews_word: "sharh", bought_today: "Bugun {n} kishi sotib oldi",
+    installment: "{m} oyga {p}/oy", add_to_cart: "Savatchaga qo'shish",
+    fav_empty: "Sevimlilar ro'yxati bo'sh. Yurakcha bosib telefon qo'shing.",
+    search_empty: "Hech narsa topilmadi. Boshqa nom bilan qidirib ko'ring.",
+    empty_cart: "Savatcha bo'sh.", empty_cart_sub: "Katalogdan telefon qo'shing.",
+    checkout_title: "Buyurtmani rasmiylashtirish",
+    field_name: "To'liq ism", field_phone: "Telefon raqam", field_region: "Viloyat / shahar",
+    field_addr: "Manzil (tuman, ko'cha, uy)", field_delivery: "Yetkazib berish:",
+    btn_cancel: "Bekor qilish", btn_confirm: "Tasdiqlash",
+    order_success_title: "Buyurtma qabul qilindi!", order_thanks: "Rahmat, {name}! Tez orada operatorlarimiz {phone} raqamiga qo'ng'iroq qilishadi.",
+    order_delivery: "Yetkazib berish:", order_total: "Jami summa:", btn_close: "Yopish",
+    my_orders_title: "📦 Mening buyurtmalarim", my_orders_sub: "Buyurtma berishda kiritgan telefon raqamingizni yozing",
+    btn_search: "Qidirish", change_number: "Boshqa raqam bilan qidirish",
+    no_orders_found: "Bu raqam bo'yicha buyurtma topilmadi.",
+    orders_found: "{n} ta buyurtma topildi",
+    detail_specs_year: "Chiqarilgan yili", detail_specs_battery: "Batareya", detail_specs_screen: "Ekran",
+    detail_specs_chip: "Protsessor", detail_specs_camera: "Kamera", reviews_title: "Mijozlar sharhlari",
+    new_badge: "Yangi", sale_badge: "Sale",
   },
   ru: {
     nav_catalog: "Каталог", nav_warranty: "Гарантия", nav_contact: "Контакты",
@@ -596,6 +643,25 @@ const I18N = {
     trust_1: "Официальная гарантия", trust_2: "Поддержка клиентов", trust_3: "Доставка по Ташкенту", trust_4: "Оригинальный товар",
     footer_city: "г. Ташкент", footer_contact: "Контакты",
     total: "Итого:", checkout_btn: "Оформить заказ",
+    currency: "сум",
+    reviews_word: "отзыв", bought_today: "Сегодня купили {n} человек",
+    installment: "{m} мес. по {p}/мес", add_to_cart: "В корзину",
+    fav_empty: "Список избранного пуст. Нажмите ♥ чтобы добавить.",
+    search_empty: "Ничего не найдено. Попробуйте другой запрос.",
+    empty_cart: "Корзина пуста.", empty_cart_sub: "Добавьте телефон из каталога.",
+    checkout_title: "Оформление заказа",
+    field_name: "Полное имя", field_phone: "Номер телефона", field_region: "Регион / город",
+    field_addr: "Адрес (район, улица, дом)", field_delivery: "Доставка:",
+    btn_cancel: "Отмена", btn_confirm: "Подтвердить",
+    order_success_title: "Заказ принят!", order_thanks: "Спасибо, {name}! Скоро наш оператор позвонит на номер {phone}.",
+    order_delivery: "Доставка:", order_total: "Итоговая сумма:", btn_close: "Закрыть",
+    my_orders_title: "📦 Мои заказы", my_orders_sub: "Введите номер телефона, указанный при заказе",
+    btn_search: "Найти", change_number: "Искать по другому номеру",
+    no_orders_found: "Заказов по этому номеру не найдено.",
+    orders_found: "Найдено заказов: {n}",
+    detail_specs_year: "Год выпуска", detail_specs_battery: "Батарея", detail_specs_screen: "Экран",
+    detail_specs_chip: "Процессор", detail_specs_camera: "Камера", reviews_title: "Отзывы клиентов",
+    new_badge: "Новинка", sale_badge: "Скидка",
   },
   en: {
     nav_catalog: "Catalog", nav_warranty: "Warranty", nav_contact: "Contact",
@@ -612,6 +678,25 @@ const I18N = {
     trust_1: "Official warranty", trust_2: "Customer support", trust_3: "Delivery in Tashkent", trust_4: "Genuine product",
     footer_city: "Tashkent city", footer_contact: "Contact",
     total: "Total:", checkout_btn: "Place order",
+    currency: "UZS",
+    reviews_word: "reviews", bought_today: "{n} people bought this today",
+    installment: "{m} mo. at {p}/mo", add_to_cart: "Add to cart",
+    fav_empty: "No favorites yet. Tap the heart to add a phone.",
+    search_empty: "Nothing found. Try a different search.",
+    empty_cart: "Your cart is empty.", empty_cart_sub: "Add a phone from the catalog.",
+    checkout_title: "Place your order",
+    field_name: "Full name", field_phone: "Phone number", field_region: "Region / city",
+    field_addr: "Address (district, street, house)", field_delivery: "Delivery:",
+    btn_cancel: "Cancel", btn_confirm: "Confirm",
+    order_success_title: "Order received!", order_thanks: "Thank you, {name}! Our operator will call {phone} shortly.",
+    order_delivery: "Delivery:", order_total: "Total amount:", btn_close: "Close",
+    my_orders_title: "📦 My orders", my_orders_sub: "Enter the phone number you used when ordering",
+    btn_search: "Search", change_number: "Search with a different number",
+    no_orders_found: "No orders found for this number.",
+    orders_found: "{n} orders found",
+    detail_specs_year: "Release year", detail_specs_battery: "Battery", detail_specs_screen: "Screen",
+    detail_specs_chip: "Chipset", detail_specs_camera: "Camera", reviews_title: "Customer reviews",
+    new_badge: "New", sale_badge: "Sale",
   },
 };
 
@@ -633,6 +718,8 @@ function applyLanguage(lang){
     if(dict[key] !== undefined) el.placeholder = dict[key];
   });
   safeSet('nova_lang', lang);
+  if(typeof renderProducts === 'function') renderProducts();
+  if(typeof renderCart === 'function') renderCart();
 }
 
 function applyTheme(theme){
@@ -1066,7 +1153,7 @@ const categories = [
 const TELEGRAM_BOT_TOKEN = "8778338115:AAEVlY3PB854WQphlZmQH1gmWBjBtQP_ee4";
 const TELEGRAM_CHAT_ID = "7449247427";
 
-function sendOrderToTelegram(name, phone, addr, total, items, deliveryFee){
+function sendOrderToTelegram(name, phone, addr, total, items, deliveryFee, promoCode, discountAmount){
   if(TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN_HERE") return; // sozlanmagan, jim o'tkazib yuboramiz
 
   let itemsText = items.map(([key, qty]) => {
@@ -1077,12 +1164,13 @@ function sendOrderToTelegram(name, phone, addr, total, items, deliveryFee){
   }).join('\n');
 
   const deliveryLine = deliveryFee ? `🚚 Yetkazib berish: ${fmt(deliveryFee)}\n` : '';
+  const promoLine = promoCode ? `🎟 Promo-kod: ${promoCode} (-${fmt(discountAmount)})\n` : '';
 
   const text = `🛒 *Yangi buyurtma — NOVA Mobile*\n\n`
     + `👤 Ism: ${name}\n`
     + `📞 Tel: ${phone}\n`
     + `📍 Manzil: ${addr || "kiritilmagan"}\n`
-    + deliveryLine + `\n`
+    + deliveryLine + promoLine + `\n`
     + `${itemsText}\n\n`
     + `💰 Jami: ${fmt(total)}`;
 
@@ -1098,7 +1186,16 @@ let searchQuery = "";
 let cart = {}; // "id-variantIdx" -> qty
 let selectedVariant = {}; // id -> variant index
 
-function fmt(n){ return n.toLocaleString('ru-RU').replace(/,/g,' ') + " so'm"; }
+function fmt(n){
+  const dict = I18N[currentLang] || I18N.uz;
+  return n.toLocaleString('ru-RU').replace(/,/g,' ') + " " + dict.currency;
+}
+function t(key, vars){
+  const dict = I18N[currentLang] || I18N.uz;
+  let str = dict[key] !== undefined ? dict[key] : key;
+  if(vars){ Object.entries(vars).forEach(([k,v]) => { str = str.replace(`{${k}}`, v); }); }
+  return str;
+}
 
 document.getElementById('searchInput').addEventListener('input', (e) => {
   searchQuery = e.target.value.trim().toLowerCase();
@@ -1134,7 +1231,7 @@ function renderProducts(){
     list = [...list].sort((a,b) => (b.variants[selectedVariant[b.id]||0][1]) - (a.variants[selectedVariant[a.id]||0][1]));
   }
   if(list.length === 0){
-    const msg = showOnlyFavorites ? "Sevimlilar ro'yxati bo'sh. Yurakcha bosib telefon qo'shing." : "Hech narsa topilmadi. Boshqa nom bilan qidirib ko'ring.";
+    const msg = showOnlyFavorites ? t("fav_empty") : t("search_empty");
     grid.innerHTML = `<div style="color:var(--ink-soft);padding:40px;grid-column:1/-1;text-align:center;">${msg}</div>`;
     return;
   }
@@ -1147,9 +1244,9 @@ function renderProducts(){
       ? `<input type="number" class="admin-price-input" data-id="${p.id}" data-vidx="${vIdx}" value="${p.variants[vIdx][1]}">`
       : `<div class="p-price" id="price-${p.id}">${fmt(p.variants[vIdx][1])}</div>`;
     const monthly = Math.round(p.variants[vIdx][1] / 12 / 50000) * 50000;
-    const installmentText = `12 oyga ${fmt(monthly)}/oy`;
+    const installmentText = t("installment", {m:12, p:fmt(monthly)});
     const boughtToday = 3 + ((p.id * 7 + new Date().getDate()) % 18);
-    const soldBadge = `<div class="sold-today">🔥 Bugun ${boughtToday} kishi sotib oldi</div>`;
+    const soldBadge = `<div class="sold-today">🔥 ${t("bought_today",{n:boughtToday})}</div>`;
     const imageUploadField = adminMode
       ? `<label class="admin-img-upload">📷 Rasm yuklash<input type="file" accept="image/*" class="admin-image-input" data-id="${p.id}" hidden></label>`
       : '';
@@ -1160,12 +1257,12 @@ function renderProducts(){
     <div class="product-card">
       <div class="glow"></div>
       <button class="fav-btn ${isFav?'active':''}" data-id="${p.id}">${isFav ? '❤️' : '🤍'}</button>
-      ${p.tag ? `<div class="badge ${p.tag==='Sale'?'sale':''}">${p.tag}</div>` : ''}
+      ${p.tag ? `<div class="badge ${p.tag==='Sale'?'sale':''}">${p.tag==='Sale'?t('sale_badge'):t('new_badge')}</div>` : ''}
       <div class="p-visual" data-detail-id="${p.id}">${phoneHTML(p)}</div>
       ${imageUploadField}
       ${titleField}
       <div class="p-spec" data-detail-id="${p.id}" style="cursor:pointer;">${p.spec}</div>
-      <div class="p-rating"><span class="stars">${stars}</span> ${p.rating} <span class="reviews-count">(${p.reviews} sharh)</span></div>
+      <div class="p-rating"><span class="stars">${stars}</span> ${p.rating} <span class="reviews-count">(${p.reviews} ${t("reviews_word")})</span></div>
       ${soldBadge}
       <select class="variant-select" data-id="${p.id}">${variantOptions}</select>
       <div class="p-bottom">
@@ -1243,6 +1340,22 @@ function getSampleReviews(p){
   return picked;
 }
 
+function loadProductReviews(productId){
+  return fetch(`${FIREBASE_DB_URL}/reviews/${productId}.json`)
+    .then(res => res.json())
+    .then(data => data ? Object.values(data).sort((a,b) => new Date(b.date)-new Date(a.date)) : [])
+    .catch(() => []);
+}
+
+function saveProductReview(productId, name, rating, text){
+  const review = { name, rating, text, date: new Date().toISOString() };
+  return fetch(`${FIREBASE_DB_URL}/reviews/${productId}.json`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(review)
+  });
+}
+
 function openProductDetail(id){
   const p = products.find(x => x.id === id);
   if(!p) return;
@@ -1259,25 +1372,22 @@ function openProductDetail(id){
       <div class="detail-visual">${phoneHTML(p, 'large')}</div>
       <h3 style="margin-top:16px;">${p.name}</h3>
       <p class="sub" style="margin-bottom:8px;">${p.spec}</p>
-      <div class="p-rating" style="margin-bottom:16px;justify-content:center;"><span class="stars">${stars}</span> ${p.rating} <span class="reviews-count">(${p.reviews} sharh)</span></div>
+      <div class="p-rating" style="margin-bottom:16px;justify-content:center;"><span class="stars">${stars}</span> ${p.rating} <span class="reviews-count">(${p.reviews} ${t("reviews_word")})</span></div>
       <p class="detail-desc">${p.description}</p>
       <div class="detail-info-grid">
-        <div class="detail-info-item"><span class="label">Chiqarilgan yili</span><span class="value">${p.year}</span></div>
-        <div class="detail-info-item"><span class="label">Batareya</span><span class="value">${p.battery}</span></div>
-        <div class="detail-info-item"><span class="label">Ekran</span><span class="value">${p.screenInfo}</span></div>
-        <div class="detail-info-item"><span class="label">Protsessor</span><span class="value">${p.chipInfo}</span></div>
+        <div class="detail-info-item"><span class="label">${t("detail_specs_year")}</span><span class="value">${p.year}</span></div>
+        <div class="detail-info-item"><span class="label">${t("detail_specs_battery")}</span><span class="value">${p.battery}</span></div>
+        <div class="detail-info-item"><span class="label">${t("detail_specs_screen")}</span><span class="value">${p.screenInfo}</span></div>
+        <div class="detail-info-item"><span class="label">${t("detail_specs_chip")}</span><span class="value">${p.chipInfo}</span></div>
         <div class="detail-info-item full"><span class="label">Kamera</span><span class="value">${p.camera}</span></div>
       </div>
       <div class="detail-variants">${variantRows}</div>
-      <button class="btn btn-primary" style="width:100%;margin-top:18px;" id="detailAddBtn">Savatchaga qo'shish</button>
+      <button class="btn btn-primary" style="width:100%;margin-top:18px;" id="detailAddBtn">${t("add_to_cart")}</button>
       <div class="detail-reviews">
-        <h4>Mijozlar sharhlari</h4>
-        ${getSampleReviews(p).map(([name, text]) => `
-          <div class="review-row">
-            <div class="review-name">${name} <span class="review-stars">★★★★★</span></div>
-            <div class="review-text">${text}</div>
-          </div>
-        `).join('')}
+        <h4>${t("reviews_title")}</h4>
+        <div id="realReviewsList"><p class="sub">...</p></div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:10px;font-size:13px;" id="writeReviewBtn">✍️ Sharh qoldirish</button>
+        <div id="reviewFormArea"></div>
       </div>
     </div>
   `;
@@ -1292,6 +1402,53 @@ function openProductDetail(id){
   document.getElementById('detailAddBtn').addEventListener('click', () => {
     addToCart(p.id);
     closeModal();
+  });
+
+  // Real sharhlarni yuklash (sample sharhlar bilan birga ko'rsatamiz)
+  loadProductReviews(p.id).then(realReviews => {
+    const sampleHtml = getSampleReviews(p).map(([name, text]) => `
+      <div class="review-row">
+        <div class="review-name">${name} <span class="review-stars">★★★★★</span></div>
+        <div class="review-text">${text}</div>
+      </div>
+    `).join('');
+    const realHtml = realReviews.map(r => `
+      <div class="review-row">
+        <div class="review-name">${r.name} <span class="review-stars">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span></div>
+        <div class="review-text">${r.text}</div>
+      </div>
+    `).join('');
+    const listEl = document.getElementById('realReviewsList');
+    if(listEl) listEl.innerHTML = realHtml + sampleHtml;
+  });
+
+  document.getElementById('writeReviewBtn').addEventListener('click', () => {
+    const area = document.getElementById('reviewFormArea');
+    if(area.innerHTML){ area.innerHTML = ''; return; }
+    area.innerHTML = `
+      <div class="review-form">
+        <div class="star-picker" id="starPicker">
+          ${[1,2,3,4,5].map(n => `<span class="star-pick" data-val="${n}">★</span>`).join('')}
+        </div>
+        <input type="text" id="reviewerName" placeholder="Ismingiz" class="review-input">
+        <textarea id="reviewText" placeholder="Fikringizni yozing..." class="review-textarea"></textarea>
+        <button class="btn btn-primary" style="width:100%;margin-top:8px;" id="submitReviewBtn">Yuborish</button>
+      </div>
+    `;
+    let selectedRating = 5;
+    const stars_el = area.querySelectorAll('.star-pick');
+    const paint = (n) => stars_el.forEach(s => s.classList.toggle('active', parseInt(s.dataset.val) <= n));
+    paint(selectedRating);
+    stars_el.forEach(s => s.addEventListener('click', () => { selectedRating = parseInt(s.dataset.val); paint(selectedRating); }));
+    document.getElementById('submitReviewBtn').addEventListener('click', () => {
+      const name = document.getElementById('reviewerName').value.trim();
+      const text = document.getElementById('reviewText').value.trim();
+      if(!name || !text){ alert("Iltimos, ism va fikringizni kiriting."); return; }
+      saveProductReview(p.id, name, selectedRating, text).then(() => {
+        area.innerHTML = '';
+        openProductDetail(id); // yangilangan sharhlar bilan qaytadan ochamiz
+      });
+    });
   });
 }
 
@@ -1473,7 +1630,7 @@ function renderCart(){
   countEl.textContent = totalQty;
 
   if(items.length === 0){
-    itemsEl.innerHTML = `<div class="empty-cart">Savatcha bo'sh.<br>Katalogdan telefon qo'shing.</div>`;
+    itemsEl.innerHTML = `<div class="empty-cart">${t('empty_cart')}<br>${t('empty_cart_sub')}</div>`;
     totalEl.textContent = "0 so'm";
     return;
   }
@@ -1537,6 +1694,46 @@ const DELIVERY_REGIONS = {
   "Qoraqalpog'iston": 50000,
 };
 
+// Promo-kodlar: percent (foiz) yoki fixed (so'm)
+const PROMO_CODES = {
+  "NOVA10": { type: "percent", value: 10 },
+  "WELCOME": { type: "fixed", value: 100000 },
+  "FRIEND": { type: "percent", value: 5 },
+};
+
+// ===== Do'stni taklif qilish (Referral) =====
+function getMyReferralCode(){
+  let code = safeGet('nova_referral_code');
+  if(!code){
+    code = "REF" + Math.random().toString(36).slice(2,7).toUpperCase();
+    safeSet('nova_referral_code', code);
+  }
+  return code;
+}
+
+function openReferral(){
+  const code = getMyReferralCode();
+  const link = `${window.location.origin}${window.location.pathname}?ref=${code}`;
+  document.getElementById('modalContent').innerHTML = `
+    <h3>🎁 Do'stingizni taklif qiling</h3>
+    <p class="sub">Do'stingiz shu havola orqali xarid qilsa, ikkalangiz ham chegirma olasiz!</p>
+    <div class="referral-box">
+      <div class="referral-code">${code}</div>
+      <button class="btn btn-ghost" id="copyRefBtn" style="width:100%;margin-top:10px;font-size:13px;">📋 Havolani nusxalash</button>
+    </div>
+    <p class="sub" style="margin-top:14px;">Promo-kod sifatida ham ishlatish mumkin: checkout'da <strong>FRIEND</strong> kodini kiriting.</p>
+    <button class="btn btn-primary" style="width:100%;margin-top:14px;" id="closeReferral">Yopish</button>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('closeReferral').addEventListener('click', closeModal);
+  document.getElementById('copyRefBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(link).then(() => {
+      document.getElementById('copyRefBtn').textContent = "✅ Nusxalandi!";
+      setTimeout(() => { document.getElementById('copyRefBtn').textContent = "📋 Havolani nusxalash"; }, 2000);
+    });
+  });
+}
+
 function openCheckout(){
   const items = Object.entries(cart);
   if(items.length === 0) return;
@@ -1551,45 +1748,82 @@ function openCheckout(){
     `<option value="${name}">${name} (${fee === 0 ? "tekin" : fmt(fee)})</option>`
   ).join('');
 
+  let appliedDiscount = 0; // so'mda
+  let appliedPromoCode = null;
+
   document.getElementById('modalContent').innerHTML = `
-    <h3>Buyurtmani rasmiylashtirish</h3>
-    <p class="sub">Mahsulotlar: <strong>${fmt(total)}</strong> — ma'lumotlaringizni kiriting</p>
-    <div class="field"><label>To'liq ism</label><input type="text" id="custName" placeholder="Ism Familiya"></div>
-    <div class="field"><label>Telefon raqam</label><input type="text" id="custPhone" placeholder="+998 90 123 45 67"></div>
+    <h3>${t('checkout_title')}</h3>
+    <p class="sub">${fmt(total)} — ${t('my_orders_sub')}</p>
+    <div class="field"><label>${t('field_name')}</label><input type="text" id="custName" placeholder="Ism Familiya"></div>
+    <div class="field"><label>${t('field_phone')}</label><input type="text" id="custPhone" placeholder="+998 90 123 45 67"></div>
     <div class="field">
-      <label>Viloyat / shahar</label>
+      <label>${t('field_region')}</label>
       <select id="custRegion" style="width:100%;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);font-size:14px;">
         ${regionOptions}
       </select>
     </div>
-    <div class="field"><label>Manzil (tuman, ko'cha, uy)</label><input type="text" id="custAddr" placeholder="Tuman, ko'cha, uy raqami"></div>
+    <div class="field"><label>${t('field_addr')}</label><input type="text" id="custAddr" placeholder="Tuman, ko'cha, uy raqami"></div>
+    <div class="field">
+      <label>Promo-kod (ixtiyoriy)</label>
+      <div class="promo-row">
+        <input type="text" id="promoCodeInput" placeholder="Masalan: NOVA10" style="text-transform:uppercase;">
+        <button type="button" class="btn btn-ghost" id="applyPromoBtn">Qo'llash</button>
+      </div>
+      <div id="promoMsg" class="promo-msg"></div>
+    </div>
     <div class="total-row" id="checkoutTotalRow" style="margin-top:10px;">
-      <span>Yetkazib berish:</span><span id="deliveryFeeText">${fmt(0)}</span>
+      <span>${t('field_delivery')}</span><span id="deliveryFeeText">${fmt(0)}</span>
+    </div>
+    <div class="total-row" id="discountRow" style="display:none;color:var(--green);">
+      <span>Chegirma:</span><span id="discountText">-${fmt(0)}</span>
     </div>
     <div class="total-row" style="font-size:16px;">
-      <span>Jami:</span><span id="checkoutGrandTotal">${fmt(total)}</span>
+      <span>${t('total')}</span><span id="checkoutGrandTotal">${fmt(total)}</span>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" style="flex:1" id="cancelOrder">Bekor qilish</button>
-      <button class="btn btn-primary" style="flex:1" id="confirmOrder">Tasdiqlash</button>
+      <button class="btn btn-ghost" style="flex:1" id="cancelOrder">${t('btn_cancel')}</button>
+      <button class="btn btn-primary" style="flex:1" id="confirmOrder">${t('btn_confirm')}</button>
     </div>
   `;
   document.getElementById('modalOverlay').classList.add('open');
   document.getElementById('cancelOrder').addEventListener('click', closeModal);
 
-  const updateDelivery = () => {
+  const recalc = () => {
     const region = document.getElementById('custRegion').value;
     const fee = DELIVERY_REGIONS[region] || 0;
     document.getElementById('deliveryFeeText').textContent = fee === 0 ? "Tekin" : fmt(fee);
-    document.getElementById('checkoutGrandTotal').textContent = fmt(total + fee);
+    const grand = Math.max(0, total + fee - appliedDiscount);
+    document.getElementById('checkoutGrandTotal').textContent = fmt(grand);
+    return {fee, grand};
   };
-  document.getElementById('custRegion').addEventListener('change', updateDelivery);
-  updateDelivery();
+  document.getElementById('custRegion').addEventListener('change', recalc);
+  recalc();
+
+  document.getElementById('applyPromoBtn').addEventListener('click', () => {
+    const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+    const msgEl = document.getElementById('promoMsg');
+    if(!code){ return; }
+    const promo = PROMO_CODES[code];
+    if(!promo){
+      appliedDiscount = 0; appliedPromoCode = null;
+      msgEl.textContent = "Bunday promo-kod topilmadi.";
+      msgEl.className = "promo-msg error";
+      document.getElementById('discountRow').style.display = "none";
+      recalc();
+      return;
+    }
+    appliedPromoCode = code;
+    appliedDiscount = promo.type === "percent" ? Math.round(total * promo.value / 100) : promo.value;
+    msgEl.textContent = `Promo-kod qo'llandi: -${promo.type === "percent" ? promo.value + "%" : fmt(promo.value)}`;
+    msgEl.className = "promo-msg success";
+    document.getElementById('discountRow').style.display = "flex";
+    document.getElementById('discountText').textContent = `-${fmt(appliedDiscount)}`;
+    recalc();
+  });
 
   document.getElementById('confirmOrder').addEventListener('click', () => {
-    const region = document.getElementById('custRegion').value;
-    const fee = DELIVERY_REGIONS[region] || 0;
-    confirmOrder(total + fee, region, fee);
+    const {fee, grand} = recalc();
+    confirmOrder(grand, document.getElementById('custRegion').value, fee, appliedPromoCode, appliedDiscount);
   });
 }
 
@@ -1616,16 +1850,19 @@ function saveOrderToHistory(name, phone, addr, total, items){
   }).catch(err => console.error("Buyurtma tarixini saqlashda xato:", err));
 }
 
-function openMyOrdersFresh(){
-  document.getElementById('modalContent').innerHTML = `
-    <h3>📦 Mening buyurtmalarim</h3>
-    <p class="sub">Buyurtma berishda kiritgan telefon raqamingizni yozing</p>
+function myOrdersPhoneFormHTML(){
+  return `
+    <h3>${t('my_orders_title')}</h3>
+    <p class="sub">${t('my_orders_sub')}</p>
     <div class="field"><input type="text" id="myOrdersPhone" placeholder="+998 90 123 45 67" autofocus></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" style="flex:1" id="cancelMyOrders">Bekor qilish</button>
-      <button class="btn btn-primary" style="flex:1" id="searchMyOrders">Qidirish</button>
+      <button class="btn btn-ghost" style="flex:1" id="cancelMyOrders">${t('btn_cancel')}</button>
+      <button class="btn btn-primary" style="flex:1" id="searchMyOrders">${t('btn_search')}</button>
     </div>
   `;
+}
+
+function wireMyOrdersForm(){
   document.getElementById('cancelMyOrders').addEventListener('click', closeModal);
   const search = () => {
     const phone = document.getElementById('myOrdersPhone').value.trim();
@@ -1637,33 +1874,22 @@ function openMyOrdersFresh(){
   document.getElementById('myOrdersPhone').addEventListener('keydown', (e) => { if(e.key === 'Enter') search(); });
 }
 
+function openMyOrdersFresh(){
+  document.getElementById('modalContent').innerHTML = myOrdersPhoneFormHTML();
+  wireMyOrdersForm();
+}
+
 function openMyOrders(){
   const savedPhone = safeGet('nova_my_phone');
   if(savedPhone){
-    document.getElementById('modalContent').innerHTML = `<h3>📦 Mening buyurtmalarim</h3><p class="sub">Yuklanmoqda...</p>`;
+    document.getElementById('modalContent').innerHTML = `<h3>${t('my_orders_title')}</h3><p class="sub">...</p>`;
     document.getElementById('modalOverlay').classList.add('open');
     fetchMyOrders(savedPhone);
     return;
   }
-  document.getElementById('modalContent').innerHTML = `
-    <h3>📦 Mening buyurtmalarim</h3>
-    <p class="sub">Buyurtma berishda kiritgan telefon raqamingizni yozing</p>
-    <div class="field"><input type="text" id="myOrdersPhone" placeholder="+998 90 123 45 67" autofocus></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" style="flex:1" id="cancelMyOrders">Bekor qilish</button>
-      <button class="btn btn-primary" style="flex:1" id="searchMyOrders">Qidirish</button>
-    </div>
-  `;
+  document.getElementById('modalContent').innerHTML = myOrdersPhoneFormHTML();
   document.getElementById('modalOverlay').classList.add('open');
-  document.getElementById('cancelMyOrders').addEventListener('click', closeModal);
-  const search = () => {
-    const phone = document.getElementById('myOrdersPhone').value.trim();
-    if(!phone){ alert("Telefon raqamini kiriting."); return; }
-    safeSet('nova_my_phone', phone); // keyingi safar so'ramaslik uchun saqlaymiz
-    fetchMyOrders(phone);
-  };
-  document.getElementById('searchMyOrders').addEventListener('click', search);
-  document.getElementById('myOrdersPhone').addEventListener('keydown', (e) => { if(e.key === 'Enter') search(); });
+  wireMyOrdersForm();
 }
 
 function fetchMyOrders(phone){
@@ -1679,12 +1905,12 @@ function fetchMyOrders(phone){
 }
 
 function renderMyOrders(orders, phone){
-  const changeNumberLink = `<div class="change-number-link" id="changeNumberLink">Boshqa raqam bilan qidirish</div>`;
+  const changeNumberLink = `<div class="change-number-link" id="changeNumberLink">${t('change_number')}</div>`;
   if(orders.length === 0){
     document.getElementById('modalContent').innerHTML = `
-      <h3>📦 Mening buyurtmalarim</h3>
-      <p class="sub">Bu raqam bo'yicha buyurtma topilmadi.</p>
-      <button class="btn btn-primary" style="width:100%;margin-top:10px" id="closeMyOrders">Yopish</button>
+      <h3>${t('my_orders_title')}</h3>
+      <p class="sub">${t('no_orders_found')}</p>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px" id="closeMyOrders">${t('btn_close')}</button>
       ${changeNumberLink}
     `;
     document.getElementById('closeMyOrders').addEventListener('click', closeModal);
@@ -1706,10 +1932,10 @@ function renderMyOrders(orders, phone){
     `;
   }).join('');
   document.getElementById('modalContent').innerHTML = `
-    <h3>📦 Mening buyurtmalarim</h3>
-    <p class="sub">${orders.length} ta buyurtma topildi</p>
+    <h3>${t('my_orders_title')}</h3>
+    <p class="sub">${t('orders_found', {n: orders.length})}</p>
     <div class="orders-list">${rows}</div>
-    <button class="btn btn-primary" style="width:100%;margin-top:14px" id="closeMyOrders">Yopish</button>
+    <button class="btn btn-primary" style="width:100%;margin-top:14px" id="closeMyOrders">${t('btn_close')}</button>
     ${changeNumberLink}
   `;
   document.getElementById('closeMyOrders').addEventListener('click', closeModal);
@@ -1733,7 +1959,7 @@ function isValidPhone(phone){
   return validPrefixes.includes(local.slice(0,2));
 }
 
-function confirmOrder(total, region, deliveryFee){
+function confirmOrder(total, region, deliveryFee, promoCode, discountAmount){
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
   const addr = document.getElementById('custAddr').value.trim();
@@ -1755,15 +1981,15 @@ function confirmOrder(total, region, deliveryFee){
   }
 
   const fullAddr = `${region}, ${addr}`;
-  sendOrderToTelegram(name, phone, fullAddr, total, Object.entries(cart), deliveryFee);
+  sendOrderToTelegram(name, phone, fullAddr, total, Object.entries(cart), deliveryFee, promoCode, discountAmount);
   saveOrderToHistory(name, phone, fullAddr, total, Object.entries(cart));
 
   document.getElementById('modalContent').innerHTML = `
     <div class="success">
       <div class="check">✓</div>
-      <h3>Buyurtma qabul qilindi!</h3>
-      <p class="sub">Rahmat, ${name}! Tez orada operatorlarimiz ${phone} raqamiga qo'ng'iroq qilishadi.<br>Yetkazib berish: ${region}${deliveryFee>0?` (+${fmt(deliveryFee)})`:''}<br>Jami summa: ${fmt(total)}</p>
-      <button class="btn btn-primary" style="width:100%;margin-top:10px" id="closeSuccess">Yopish</button>
+      <h3>${t('order_success_title')}</h3>
+      <p class="sub">${t('order_thanks', {name, phone})}<br>${t('order_delivery')} ${region}${deliveryFee>0?` (+${fmt(deliveryFee)})`:''}<br>${t('order_total')} ${fmt(total)}</p>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px" id="closeSuccess">${t('btn_close')}</button>
     </div>
   `;
   document.getElementById('closeSuccess').addEventListener('click', () => {
@@ -1804,6 +2030,31 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 renderFilters();
 renderProducts();
 renderCart();
+
+// ===== PWA: Service Worker va "ilova sifatida o'rnatish" tugmasi =====
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.error('SW xato:', err));
+  });
+}
+
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('installAppBtn');
+  if(btn) btn.style.display = 'inline-block';
+});
+
+function installApp(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(() => {
+    deferredInstallPrompt = null;
+    const btn = document.getElementById('installAppBtn');
+    if(btn) btn.style.display = 'none';
+  });
+}
 
 // Status bar va qulflangan ekran soati — haqiqiy vaqtni ko'rsatadi
 function tickDiscountTimer(){
