@@ -411,6 +411,16 @@ footer .f-brand .dot{color:var(--coral);}
 .review-cons{font-size:12.5px;color:var(--coral);margin-top:4px;line-height:1.5;}
 .review-field-label{font-size:12px;color:var(--ink-soft);font-weight:600;margin:8px 0 4px;display:block;}
 .review-textarea.small{min-height:44px;}
+.owner-reply{
+  margin-top:8px;padding:10px 12px;background:rgba(255,93,114,0.08);border-left:3px solid var(--coral);
+  border-radius:8px;font-size:12.5px;color:var(--ink);line-height:1.5;
+}
+.reply-btn{
+  background:none;border:1px solid var(--line);color:var(--ink-soft);
+  font-size:11px;padding:5px 10px;border-radius:8px;cursor:pointer;margin-top:6px;margin-left:6px;
+}
+.reply-btn:hover{border-color:var(--coral);color:var(--coral);}
+.reply-form-area{margin-top:8px;}
 .verified-badge{font-size:10px;color:var(--green);font-weight:700;background:rgba(43,209,140,0.12);padding:2px 6px;border-radius:5px;margin-left:4px;}
 .helpful-btn{
   background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);
@@ -1425,8 +1435,16 @@ function getSampleReviews(p){
 function loadProductReviews(productId){
   return fetch(`${FIREBASE_DB_URL}/reviews/${productId}.json`)
     .then(res => res.json())
-    .then(data => data ? Object.values(data).sort((a,b) => new Date(b.date)-new Date(a.date)) : [])
+    .then(data => data ? Object.entries(data).map(([key, val]) => ({...val, _key: key})).sort((a,b) => new Date(b.date)-new Date(a.date)) : [])
     .catch(() => []);
+}
+
+function saveOwnerReply(productId, reviewKey, replyText){
+  return fetch(`${FIREBASE_DB_URL}/reviews/${productId}/${reviewKey}/ownerReply.json?auth=${firebaseIdToken}`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(replyText)
+  });
 }
 
 function saveProductReview(productId, name, rating, text, pros, cons){
@@ -1489,8 +1507,8 @@ function openProductDetail(id){
 
   // Real sharhlarni yuklash (sample sharhlar bilan birga ko'rsatamiz)
   loadProductReviews(p.id).then(realReviews => {
-    const sampleAsReviews = getSampleReviews(p).map(([name, text]) => ({name, text, rating:5, helpful:Math.floor(Math.random()*8), verified:true}));
-    const allReviews = [...realReviews.map(r => ({...r, verified:false})), ...sampleAsReviews];
+    const sampleAsReviews = getSampleReviews(p).map(([name, text]) => ({name, text, rating:5, helpful:Math.floor(Math.random()*8), verified:false}));
+    const allReviews = [...realReviews.map(r => ({...r, verified:true})), ...sampleAsReviews];
 
     // Yulduzcha taqsimoti (Uzum uslubida bar-chart)
     const counts = [0,0,0,0,0];
@@ -1508,10 +1526,10 @@ function openProductDetail(id){
     }).join('');
     document.getElementById('ratingBreakdown').innerHTML = `<div class="rating-breakdown">${breakdownHtml}</div>`;
 
-    renderReviewList(allReviews, 'newest');
+    renderReviewList(allReviews, 'newest', p.id);
 
     document.getElementById('reviewSortSelect')?.addEventListener('change', (e) => {
-      renderReviewList(allReviews, e.target.value);
+      renderReviewList(allReviews, e.target.value, p.id);
     });
   });
 
@@ -1552,7 +1570,7 @@ function openProductDetail(id){
   });
 }
 
-function renderReviewList(reviews, sortMode){
+function renderReviewList(reviews, sortMode, productId){
   let sorted = [...reviews];
   if(sortMode === 'highest') sorted.sort((a,b) => b.rating - a.rating);
   else if(sortMode === 'lowest') sorted.sort((a,b) => a.rating - b.rating);
@@ -1576,13 +1594,15 @@ function renderReviewList(reviews, sortMode){
       ${r.cons ? `<div class="review-cons">👎 <strong>Kamchiligi:</strong> ${r.cons}</div>` : ''}
       ${r.text ? `<div class="review-text">${r.text}</div>` : ''}
       <button class="helpful-btn" data-idx="${idx}">👍 Foydali (${r.helpful||0})</button>
+      ${r.ownerReply ? `<div class="owner-reply"><strong>🏪 Do'kon javobi:</strong> ${r.ownerReply}</div>` : ''}
+      ${(adminMode && r._key && !r.ownerReply) ? `<button class="reply-btn" data-key="${r._key}">💬 Javob yozish</button><div class="reply-form-area" data-key-area="${r._key}"></div>` : ''}
     </div>
   `).join('');
 
   const listEl = document.getElementById('realReviewsList');
   if(listEl){
     listEl.innerHTML = sortBar + rowsHtml;
-    document.getElementById('reviewSortSelect').addEventListener('change', (e) => renderReviewList(reviews, e.target.value));
+    document.getElementById('reviewSortSelect').addEventListener('change', (e) => renderReviewList(reviews, e.target.value, productId));
     listEl.querySelectorAll('.helpful-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         btn.disabled = true;
@@ -1590,6 +1610,22 @@ function renderReviewList(reviews, sortMode){
         const idx = parseInt(btn.dataset.idx);
         sorted[idx].helpful = (sorted[idx].helpful||0) + 1;
         btn.textContent = `👍 Foydali (${sorted[idx].helpful})`;
+      });
+    });
+    listEl.querySelectorAll('.reply-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+        const area = document.querySelector(`.reply-form-area[data-key-area="${key}"]`);
+        if(area.innerHTML){ area.innerHTML = ''; return; }
+        area.innerHTML = `
+          <textarea class="review-textarea small" placeholder="Mijozga javob yozing..." id="replyText-${key}"></textarea>
+          <button class="btn btn-primary" style="width:100%;margin-top:6px;font-size:13px;" id="sendReply-${key}">Yuborish</button>
+        `;
+        document.getElementById(`sendReply-${key}`).addEventListener('click', () => {
+          const replyText = document.getElementById(`replyText-${key}`).value.trim();
+          if(!replyText) return;
+          saveOwnerReply(productId, key, replyText).then(() => openProductDetail(productId));
+        });
       });
     });
   }
