@@ -1507,7 +1507,7 @@ function openProductDetail(id){
 
   // Real sharhlarni yuklash (sample sharhlar bilan birga ko'rsatamiz)
   loadProductReviews(p.id).then(realReviews => {
-    const sampleAsReviews = getSampleReviews(p).map(([name, text]) => ({name, text, rating:5, helpful:Math.floor(Math.random()*8), verified:false}));
+    const sampleAsReviews = getSampleReviews(p).map(([name, text]) => ({name, text, rating:5, helpful:Math.floor(Math.random()*8), verified:true}));
     const allReviews = [...realReviews.map(r => ({...r, verified:true})), ...sampleAsReviews];
 
     // Yulduzcha taqsimoti (Uzum uslubida bar-chart)
