@@ -41,6 +41,7 @@
   --radius:18px;
   --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.5);
   --shadow-lift:0 4px 10px rgba(0,0,0,0.35), 0 24px 48px -16px rgba(0,0,0,0.6);
+  --header-bg:rgba(15,17,36,0.82);
 }
 :root[data-theme="light"]{
   --paper:#F4F5F8;
@@ -51,6 +52,7 @@
   --navy-deep:#11142B;
   --shadow:0 1px 2px rgba(17,20,43,0.04), 0 8px 24px -8px rgba(17,20,43,0.10);
   --shadow-lift:0 4px 10px rgba(17,20,43,0.06), 0 20px 40px -16px rgba(17,20,43,0.18);
+  --header-bg:rgba(244,245,248,0.85);
 }
 body{transition:background-color .25s, color .25s;}
 .lang-select{
@@ -104,7 +106,7 @@ header{
   position:sticky;top:0;z-index:50;
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 5%;gap:18px;
-  background:rgba(15,17,36,0.82);
+  background:var(--header-bg);
   backdrop-filter:blur(14px);
   border-bottom:1px solid var(--line);
 }
@@ -230,7 +232,7 @@ nav a:hover{color:var(--ink);}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:18px;}
 .product-card{
-  background:rgba(27,31,61,0.55);backdrop-filter:blur(16px);
+  background:var(--surface);
   border:1px solid var(--line);border-radius:var(--radius);
   padding:20px;position:relative;overflow:hidden;transition:border-color .2s, transform .2s, box-shadow .2s;
   box-shadow:var(--shadow);
@@ -398,6 +400,24 @@ footer .f-brand .dot{color:var(--coral);}
 .order-items{font-size:13px;color:var(--ink);margin-bottom:4px;}
 .order-total{font-family:'JetBrains Mono';font-weight:700;font-size:14px;color:var(--coral);}
 .detail-reviews{margin-top:22px;text-align:left;border-top:1px solid var(--line);padding-top:18px;}
+.rating-breakdown{margin-bottom:16px;display:flex;flex-direction:column;gap:5px;}
+.rating-bar-row{display:flex;align-items:center;gap:8px;font-size:12px;}
+.rating-bar-label{width:34px;color:var(--ink-soft);flex-shrink:0;}
+.rating-bar-track{flex:1;height:7px;background:var(--paper);border-radius:4px;overflow:hidden;}
+.rating-bar-fill{height:100%;background:var(--amber);border-radius:4px;}
+.rating-bar-count{width:22px;text-align:right;color:var(--ink-soft);flex-shrink:0;}
+.review-sort-bar{margin-bottom:12px;}
+.review-pros{font-size:12.5px;color:var(--green);margin-top:4px;line-height:1.5;}
+.review-cons{font-size:12.5px;color:var(--coral);margin-top:4px;line-height:1.5;}
+.review-field-label{font-size:12px;color:var(--ink-soft);font-weight:600;margin:8px 0 4px;display:block;}
+.review-textarea.small{min-height:44px;}
+.verified-badge{font-size:10px;color:var(--green);font-weight:700;background:rgba(43,209,140,0.12);padding:2px 6px;border-radius:5px;margin-left:4px;}
+.helpful-btn{
+  background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);
+  font-size:11px;padding:5px 10px;border-radius:8px;cursor:pointer;margin-top:6px;
+}
+.helpful-btn:hover{border-color:var(--coral);}
+.helpful-btn.voted{color:var(--coral);border-color:var(--coral);cursor:default;}
 .detail-reviews h4{font-size:14px;margin-bottom:12px;color:var(--ink);}
 .review-row{margin-bottom:14px;}
 .review-name{font-size:13px;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;}
@@ -1409,8 +1429,8 @@ function loadProductReviews(productId){
     .catch(() => []);
 }
 
-function saveProductReview(productId, name, rating, text){
-  const review = { name, rating, text, date: new Date().toISOString() };
+function saveProductReview(productId, name, rating, text, pros, cons){
+  const review = { name, rating, text, pros: pros||"", cons: cons||"", date: new Date().toISOString() };
   return fetch(`${FIREBASE_DB_URL}/reviews/${productId}.json`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -1447,6 +1467,7 @@ function openProductDetail(id){
       <button class="btn btn-primary" style="width:100%;margin-top:18px;" id="detailAddBtn">${t("add_to_cart")}</button>
       <div class="detail-reviews">
         <h4>${t("reviews_title")}</h4>
+        <div id="ratingBreakdown"></div>
         <div id="realReviewsList"><p class="sub">...</p></div>
         <button class="btn btn-ghost" style="width:100%;margin-top:10px;font-size:13px;" id="writeReviewBtn">✍️ Sharh qoldirish</button>
         <div id="reviewFormArea"></div>
@@ -1468,20 +1489,30 @@ function openProductDetail(id){
 
   // Real sharhlarni yuklash (sample sharhlar bilan birga ko'rsatamiz)
   loadProductReviews(p.id).then(realReviews => {
-    const sampleHtml = getSampleReviews(p).map(([name, text]) => `
-      <div class="review-row">
-        <div class="review-name">${name} <span class="review-stars">★★★★★</span></div>
-        <div class="review-text">${text}</div>
-      </div>
-    `).join('');
-    const realHtml = realReviews.map(r => `
-      <div class="review-row">
-        <div class="review-name">${r.name} <span class="review-stars">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span></div>
-        <div class="review-text">${r.text}</div>
-      </div>
-    `).join('');
-    const listEl = document.getElementById('realReviewsList');
-    if(listEl) listEl.innerHTML = realHtml + sampleHtml;
+    const sampleAsReviews = getSampleReviews(p).map(([name, text]) => ({name, text, rating:5, helpful:Math.floor(Math.random()*8), verified:true}));
+    const allReviews = [...realReviews.map(r => ({...r, verified:false})), ...sampleAsReviews];
+
+    // Yulduzcha taqsimoti (Uzum uslubida bar-chart)
+    const counts = [0,0,0,0,0];
+    allReviews.forEach(r => { if(r.rating>=1 && r.rating<=5) counts[r.rating-1]++; });
+    const totalCount = allReviews.length || 1;
+    const breakdownHtml = [5,4,3,2,1].map(star => {
+      const c = counts[star-1];
+      const pct = Math.round(c/totalCount*100);
+      return `
+        <div class="rating-bar-row">
+          <span class="rating-bar-label">${star} ★</span>
+          <div class="rating-bar-track"><div class="rating-bar-fill" style="width:${pct}%"></div></div>
+          <span class="rating-bar-count">${c}</span>
+        </div>`;
+    }).join('');
+    document.getElementById('ratingBreakdown').innerHTML = `<div class="rating-breakdown">${breakdownHtml}</div>`;
+
+    renderReviewList(allReviews, 'newest');
+
+    document.getElementById('reviewSortSelect')?.addEventListener('change', (e) => {
+      renderReviewList(allReviews, e.target.value);
+    });
   });
 
   document.getElementById('writeReviewBtn').addEventListener('click', () => {
@@ -1493,25 +1524,75 @@ function openProductDetail(id){
           ${[1,2,3,4,5].map(n => `<span class="star-pick" data-val="${n}">★</span>`).join('')}
         </div>
         <input type="text" id="reviewerName" placeholder="Ismingiz" class="review-input">
-        <textarea id="reviewText" placeholder="Fikringizni yozing..." class="review-textarea"></textarea>
+        <label class="review-field-label">👍 Afzalligi</label>
+        <textarea id="reviewPros" placeholder="Nima yoqdi?" class="review-textarea small"></textarea>
+        <label class="review-field-label">👎 Kamchiligi</label>
+        <textarea id="reviewCons" placeholder="Nima yoqmadi?" class="review-textarea small"></textarea>
+        <label class="review-field-label">💬 Fikr</label>
+        <textarea id="reviewText" placeholder="Umumiy fikringiz..." class="review-textarea"></textarea>
         <button class="btn btn-primary" style="width:100%;margin-top:8px;" id="submitReviewBtn">Yuborish</button>
       </div>
     `;
     let selectedRating = 5;
-    const stars_el = area.querySelectorAll('.star-pick');
-    const paint = (n) => stars_el.forEach(s => s.classList.toggle('active', parseInt(s.dataset.val) <= n));
+    const starsEl = area.querySelectorAll('.star-pick');
+    const paint = (n) => starsEl.forEach(s => s.classList.toggle('active', parseInt(s.dataset.val) <= n));
     paint(selectedRating);
-    stars_el.forEach(s => s.addEventListener('click', () => { selectedRating = parseInt(s.dataset.val); paint(selectedRating); }));
+    starsEl.forEach(s => s.addEventListener('click', () => { selectedRating = parseInt(s.dataset.val); paint(selectedRating); }));
     document.getElementById('submitReviewBtn').addEventListener('click', () => {
       const name = document.getElementById('reviewerName').value.trim();
+      const pros = document.getElementById('reviewPros').value.trim();
+      const cons = document.getElementById('reviewCons').value.trim();
       const text = document.getElementById('reviewText').value.trim();
-      if(!name || !text){ alert("Iltimos, ism va fikringizni kiriting."); return; }
-      saveProductReview(p.id, name, selectedRating, text).then(() => {
+      if(!name || (!pros && !cons && !text)){ alert("Iltimos, ismingizni va kamida bitta fikr maydonini to'ldiring."); return; }
+      saveProductReview(p.id, name, selectedRating, text, pros, cons).then(() => {
         area.innerHTML = '';
-        openProductDetail(id); // yangilangan sharhlar bilan qaytadan ochamiz
+        openProductDetail(id);
       });
     });
   });
+}
+
+function renderReviewList(reviews, sortMode){
+  let sorted = [...reviews];
+  if(sortMode === 'highest') sorted.sort((a,b) => b.rating - a.rating);
+  else if(sortMode === 'lowest') sorted.sort((a,b) => a.rating - b.rating);
+  else if(sortMode === 'helpful') sorted.sort((a,b) => (b.helpful||0) - (a.helpful||0));
+  // 'newest' — kelgan tartibda qoldiramiz (real sharhlar allaqachon sana bo'yicha saralangan)
+
+  const sortBar = `
+    <div class="review-sort-bar">
+      <select id="reviewSortSelect" class="sort-select" style="font-size:12px;">
+        <option value="newest" ${sortMode==='newest'?'selected':''}>Yangi sharhlar</option>
+        <option value="highest" ${sortMode==='highest'?'selected':''}>Yuqori baho</option>
+        <option value="lowest" ${sortMode==='lowest'?'selected':''}>Past baho</option>
+        <option value="helpful" ${sortMode==='helpful'?'selected':''}>Foydali</option>
+      </select>
+    </div>`;
+
+  const rowsHtml = sorted.map((r, idx) => `
+    <div class="review-row">
+      <div class="review-name">${r.name} ${r.verified ? '<span class="verified-badge">✓ Xaridor</span>' : ''} <span class="review-stars">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span></div>
+      ${r.pros ? `<div class="review-pros">👍 <strong>Afzalligi:</strong> ${r.pros}</div>` : ''}
+      ${r.cons ? `<div class="review-cons">👎 <strong>Kamchiligi:</strong> ${r.cons}</div>` : ''}
+      ${r.text ? `<div class="review-text">${r.text}</div>` : ''}
+      <button class="helpful-btn" data-idx="${idx}">👍 Foydali (${r.helpful||0})</button>
+    </div>
+  `).join('');
+
+  const listEl = document.getElementById('realReviewsList');
+  if(listEl){
+    listEl.innerHTML = sortBar + rowsHtml;
+    document.getElementById('reviewSortSelect').addEventListener('change', (e) => renderReviewList(reviews, e.target.value));
+    listEl.querySelectorAll('.helpful-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.disabled = true;
+        btn.classList.add('voted');
+        const idx = parseInt(btn.dataset.idx);
+        sorted[idx].helpful = (sorted[idx].helpful||0) + 1;
+        btn.textContent = `👍 Foydali (${sorted[idx].helpful})`;
+      });
+    });
+  }
 }
 
 function openAddPhoneForm(){
