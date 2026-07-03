@@ -499,7 +499,7 @@ footer .f-brand .dot{color:var(--coral);}
 </div>
 
 <header>
-  <div class="logo"><span class="dot"></span>NOVA</div>
+  <div class="logo" id="logoSecret" onclick="handleLogoClick()"><span class="dot"></span>NOVA</div>
   <nav>
     <a href="#katalog" data-i18n="nav_catalog">Katalog</a>
     <a href="#trust" data-i18n="nav_warranty">Kafolat</a>
@@ -570,7 +570,7 @@ footer .f-brand .dot{color:var(--coral);}
   <div class="f-brand">NOVA<span class="dot">.</span> Mobile</div>
   <div id="footerContact"><span data-i18n="footer_city">Toshkent shahri</span> · <a href="https://t.me/nova_mobile_shop_bot" target="_blank" style="color:var(--green);font-weight:600;">🤖 Telegram bot</a> · <span data-i18n="footer_contact">Aloqa</span>: <a href="tel:+998900110813" style="color:var(--coral);font-weight:600;">+998 90 011 08 13</a></div>
   <button id="editContactBtn" class="admin-toggle-btn" style="display:none;" onclick="openContactEditor()">✏️ Aloqani tahrirlash</button>
-  <button id="adminToggle" class="admin-toggle-btn" onclick="toggleAdminMode()">🔒 Admin rejimi</button>
+  <button id="adminToggle" class="admin-toggle-btn" style="display:none;" onclick="toggleAdminMode()">🔒 Admin rejimi</button>
   <button id="addPhoneBtn" class="admin-toggle-btn" style="display:none;" onclick="openAddPhoneForm()">➕ Yangi telefon qo'shish</button>
 </footer>
 
@@ -1602,6 +1602,19 @@ function notifyAdminLoginAttempt(email, success){
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({chat_id: TELEGRAM_CHAT_ID, text: text, parse_mode: "Markdown"})
   }).catch(err => console.error("Bildirishnoma yuborishda xato:", err));
+}
+
+let logoClickCount = 0;
+let logoClickTimer = null;
+function handleLogoClick(){
+  logoClickCount++;
+  clearTimeout(logoClickTimer);
+  logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2000);
+  if(logoClickCount >= 5){
+    logoClickCount = 0;
+    document.getElementById('adminToggle').style.display = "inline-block";
+    document.getElementById('adminToggle').scrollIntoView({behavior:'smooth', block:'center'});
+  }
 }
 
 function toggleAdminMode(){
