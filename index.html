@@ -148,6 +148,15 @@ nav a:hover{color:var(--ink);}
   content:"";position:absolute;bottom:-200px;right:-140px;width:520px;height:520px;border-radius:50%;
   background:radial-gradient(circle, rgba(61,220,151,0.13), transparent 65%);pointer-events:none;
 }
+.working-hours-badge{
+  display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+  padding:6px 12px;border-radius:999px;margin-bottom:16px;position:relative;z-index:1;
+}
+.working-hours-badge.open{background:rgba(43,209,140,0.12);color:var(--green);}
+.working-hours-badge.closed{background:rgba(255,93,114,0.12);color:var(--coral);}
+.wh-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.wh-dot.open{background:var(--green);box-shadow:0 0 6px var(--green);}
+.wh-dot.closed{background:var(--coral);}
 .eyebrow{
   color:var(--green);font-size:12.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
   display:flex;align-items:center;gap:8px;margin-bottom:20px;position:relative;z-index:1;
@@ -566,6 +575,7 @@ footer .f-brand .dot{color:var(--coral);}
 <section class="hero">
   <div>
     <div class="eyebrow" data-i18n="hero_eyebrow">Yangi kolleksiya • 2026</div>
+    <div class="working-hours-badge" id="workingHoursBadge"></div>
     <h1 data-i18n-html="hero_h1">Qo'lingizga mos <em>smartfon</em> shu yerda.</h1>
     <p data-i18n="hero_sub">Original telefonlar, rasmiy kafolat va tezkor yetkazib berish. Toshkent bo'yicha bugun buyurtma — ertaga uyingizda.</p>
     <div class="hero-cta">
@@ -1087,9 +1097,12 @@ function openStats(){
   document.getElementById('modalContent').innerHTML = `<h3>📊 Statistika</h3><p class="sub">Yuklanmoqda...</p>`;
   document.getElementById('modalOverlay').classList.add('open');
 
-  fetch(`${FIREBASE_DB_URL}/orders.json`)
-    .then(res => res.json())
-    .then(data => {
+  Promise.all([
+    fetch(`${FIREBASE_DB_URL}/orders.json`).then(res => res.json()),
+    fetch(`${FIREBASE_DB_URL}/visits.json`).then(res => res.json())
+  ])
+    .then(([data, visitsData]) => {
+      const totalVisits = visitsData ? Object.values(visitsData).reduce((s,v) => s+v, 0) : 0;
       const orders = data ? Object.values(data) : [];
       const totalOrders = orders.length;
       const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
@@ -1141,8 +1154,10 @@ function openStats(){
       document.getElementById('modalContent').innerHTML = `
         <h3>📊 Statistika</h3>
         <div class="stats-summary">
+          <div class="stat-card"><div class="stat-num">${totalVisits}</div><div class="stat-label">Sayt tashriflari</div></div>
           <div class="stat-card"><div class="stat-num">${totalOrders}</div><div class="stat-label">Jami buyurtmalar</div></div>
           <div class="stat-card"><div class="stat-num">${fmt(totalRevenue)}</div><div class="stat-label">Jami savdo</div></div>
+          <div class="stat-card"><div class="stat-num">${totalVisits > 0 ? ((totalOrders/totalVisits)*100).toFixed(1) : 0}%</div><div class="stat-label">Konversiya</div></div>
         </div>
         <h4 style="margin-top:18px;font-size:14px;">So'nggi 7 kun</h4>
         <div class="stats-chart">${chartHtml}</div>
@@ -2312,6 +2327,26 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   applyTheme(next);
 });
 
+// Sayt tashriflari hisoblagichi (oddiy, taxminiy statistika uchun)
+function trackVisit(){
+  const today = new Date().toISOString().slice(0,10);
+  const visitedKey = 'nova_visited_' + today;
+  if(safeGet(visitedKey)) return;
+  safeSet(visitedKey, '1');
+  fetch(`${FIREBASE_DB_URL}/visits/${today}.json`)
+    .then(res => res.json())
+    .then(count => {
+      const newCount = (count || 0) + 1;
+      fetch(`${FIREBASE_DB_URL}/visits/${today}.json`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(newCount)
+      });
+    })
+    .catch(err => console.error("Tashrifni hisoblashda xato:", err));
+}
+trackVisit();
+
 renderFilters();
 renderProducts();
 renderCart();
@@ -2355,6 +2390,26 @@ function tickDiscountTimer(){
 }
 tickDiscountTimer();
 setInterval(tickDiscountTimer, 1000);
+
+// Ish vaqti ko'rsatkichi: 09:00 - 21:00 oraligida "Ochiq"
+const WORK_START_HOUR = 9;
+const WORK_END_HOUR = 21;
+function tickWorkingHours(){
+  const el = document.getElementById('workingHoursBadge');
+  if(!el) return;
+  const now = new Date();
+  const h = now.getHours();
+  const isOpen = h >= WORK_START_HOUR && h < WORK_END_HOUR;
+  if(isOpen){
+    el.innerHTML = `<span class="wh-dot open"></span> Hozir ochiq · ${WORK_START_HOUR}:00–${WORK_END_HOUR}:00`;
+    el.className = "working-hours-badge open";
+  } else {
+    el.innerHTML = `<span class="wh-dot closed"></span> Hozir yopiq · Ish vaqti: ${WORK_START_HOUR}:00–${WORK_END_HOUR}:00`;
+    el.className = "working-hours-badge closed";
+  }
+}
+tickWorkingHours();
+setInterval(tickWorkingHours, 60000);
 
 function tickClock(){
   const now = new Date();
