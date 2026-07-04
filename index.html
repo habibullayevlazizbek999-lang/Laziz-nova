@@ -149,14 +149,21 @@ nav a:hover{color:var(--ink);}
   background:radial-gradient(circle, rgba(61,220,151,0.13), transparent 65%);pointer-events:none;
 }
 .working-hours-badge{
-  display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
-  padding:6px 12px;border-radius:999px;margin-bottom:16px;position:relative;z-index:1;
+  display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;
+  padding:10px 18px;border-radius:999px;margin-bottom:18px;position:relative;z-index:1;
+  border:1.5px solid transparent;
 }
-.working-hours-badge.open{background:rgba(43,209,140,0.12);color:var(--green);}
-.working-hours-badge.closed{background:rgba(255,93,114,0.12);color:var(--coral);}
-.wh-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
-.wh-dot.open{background:var(--green);box-shadow:0 0 6px var(--green);}
-.wh-dot.closed{background:var(--coral);}
+.working-hours-badge.open{background:rgba(43,209,140,0.14);color:var(--green);border-color:rgba(43,209,140,0.3);}
+.working-hours-badge.closed{background:rgba(255,93,114,0.14);color:var(--coral);border-color:rgba(255,93,114,0.3);}
+.wh-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.wh-dot.open{background:var(--green);box-shadow:0 0 8px var(--green);}
+.wh-dot.closed{background:var(--coral);box-shadow:0 0 8px var(--coral);}
+.wh-edit-btn{
+  display:none;background:none;border:none;color:inherit;cursor:pointer;font-size:13px;
+  margin-left:4px;opacity:0.8;
+}
+.wh-edit-btn:hover{opacity:1;}
+.wh-edit-btn.visible{display:inline-block;}
 .eyebrow{
   color:var(--green);font-size:12.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
   display:flex;align-items:center;gap:8px;margin-bottom:20px;position:relative;z-index:1;
@@ -1847,6 +1854,7 @@ function toggleAdminMode(){
     document.getElementById('addPhoneBtn').style.display = "none";
     document.getElementById('editContactBtn').style.display = "none";
     document.getElementById('statsBtn').style.display = "none";
+    tickWorkingHours();
     renderProducts();
     return;
   }
@@ -1892,6 +1900,7 @@ function toggleAdminMode(){
         document.getElementById('addPhoneBtn').style.display = "inline-block";
         document.getElementById('editContactBtn').style.display = "inline-block";
         document.getElementById('statsBtn').style.display = "inline-block";
+        tickWorkingHours();
         closeModal();
         renderProducts();
       })
@@ -2391,25 +2400,79 @@ function tickDiscountTimer(){
 tickDiscountTimer();
 setInterval(tickDiscountTimer, 1000);
 
-// Ish vaqti ko'rsatkichi: 09:00 - 21:00 oraligida "Ochiq"
-const WORK_START_HOUR = 9;
-const WORK_END_HOUR = 21;
+// Ish vaqti ko'rsatkichi — admin tahrirlashi mumkin, Firebase'da saqlanadi
+let workStartHour = 9;
+let workEndHour = 21;
+
+function loadWorkingHours(){
+  return fetch(`${FIREBASE_DB_URL}/workingHours.json`)
+    .then(res => res.json())
+    .then(data => {
+      if(data){
+        if(typeof data.start === 'number') workStartHour = data.start;
+        if(typeof data.end === 'number') workEndHour = data.end;
+      }
+      tickWorkingHours();
+    })
+    .catch(err => console.error("Ish vaqtini yuklashda xato:", err));
+}
+
+function saveWorkingHours(start, end){
+  fetch(`${FIREBASE_DB_URL}/workingHours.json?auth=${firebaseIdToken}`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({start, end})
+  }).catch(err => console.error("Ish vaqtini saqlashda xato:", err));
+}
+
 function tickWorkingHours(){
   const el = document.getElementById('workingHoursBadge');
   if(!el) return;
   const now = new Date();
   const h = now.getHours();
-  const isOpen = h >= WORK_START_HOUR && h < WORK_END_HOUR;
+  const isOpen = h >= workStartHour && h < workEndHour;
+  const editIcon = `<span class="wh-edit-btn ${adminMode ? 'visible' : ''}" id="whEditBtn">✏️</span>`;
   if(isOpen){
-    el.innerHTML = `<span class="wh-dot open"></span> Hozir ochiq · ${WORK_START_HOUR}:00–${WORK_END_HOUR}:00`;
+    el.innerHTML = `<span class="wh-dot open"></span> Hozir ochiq · ${workStartHour}:00–${workEndHour}:00 ${editIcon}`;
     el.className = "working-hours-badge open";
   } else {
-    el.innerHTML = `<span class="wh-dot closed"></span> Hozir yopiq · Ish vaqti: ${WORK_START_HOUR}:00–${WORK_END_HOUR}:00`;
+    el.innerHTML = `<span class="wh-dot closed"></span> Hozir yopiq · Ish vaqti: ${workStartHour}:00–${workEndHour}:00 ${editIcon}`;
     el.className = "working-hours-badge closed";
   }
+  const editBtn = document.getElementById('whEditBtn');
+  if(editBtn) editBtn.addEventListener('click', openWorkingHoursEditor);
 }
-tickWorkingHours();
+loadWorkingHours();
 setInterval(tickWorkingHours, 60000);
+
+function openWorkingHoursEditor(){
+  document.getElementById('modalContent').innerHTML = `
+    <h3>🕒 Ish vaqtini tahrirlash</h3>
+    <p class="sub">Soatlarni kiriting (0-23 oralig'ida)</p>
+    <div class="field"><label>Ochilish soati</label><input type="number" id="editWorkStart" min="0" max="23" value="${workStartHour}"></div>
+    <div class="field"><label>Yopilish soati</label><input type="number" id="editWorkEnd" min="0" max="23" value="${workEndHour}"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" id="cancelWhEdit">Bekor qilish</button>
+      <button class="btn btn-primary" style="flex:1" id="saveWhEdit">Saqlash</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('cancelWhEdit').addEventListener('click', closeModal);
+  document.getElementById('saveWhEdit').addEventListener('click', () => {
+    const start = parseInt(document.getElementById('editWorkStart').value);
+    const end = parseInt(document.getElementById('editWorkEnd').value);
+    if(isNaN(start) || isNaN(end) || start < 0 || start > 23 || end < 0 || end > 23){
+      alert("Iltimos, to'g'ri soat kiriting (0-23).");
+      return;
+    }
+    workStartHour = start;
+    workEndHour = end;
+    saveWorkingHours(start, end);
+    tickWorkingHours();
+    closeModal();
+  });
+}
+
 
 function tickClock(){
   const now = new Date();
