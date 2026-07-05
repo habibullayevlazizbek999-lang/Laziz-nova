@@ -407,6 +407,11 @@ footer .f-brand .dot{color:var(--coral);}
 }
 .change-number-link:hover{color:var(--coral);}
 .orders-list{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+.rate-order-btn{
+  margin-top:8px;background:rgba(255,193,94,0.1);border:1px solid var(--amber);color:var(--amber);
+  font-size:12px;font-weight:600;padding:7px 12px;border-radius:8px;cursor:pointer;
+}
+.rate-order-btn:hover{background:rgba(255,193,94,0.2);}
 .order-history-row{
   background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-align:left;
 }
@@ -462,6 +467,7 @@ footer .f-brand .dot{color:var(--coral);}
 .detail-modal{position:relative;text-align:center;}
 .detail-visual{display:flex;justify-content:center;margin-bottom:6px;}
 .detail-desc{font-size:13.5px;color:var(--ink-soft);line-height:1.65;text-align:left;margin-bottom:16px;}
+.qr-code-box{display:flex;justify-content:center;padding:16px;background:#fff;border-radius:14px;}
 .stats-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .stat-card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;}
 .stat-num{font-family:'JetBrains Mono';font-weight:700;font-size:20px;color:var(--coral);}
@@ -629,6 +635,7 @@ footer .f-brand .dot{color:var(--coral);}
 <footer id="footer">
   <div class="f-brand">NOVA<span class="dot">.</span> Mobile</div>
   <div id="footerContact"><span data-i18n="footer_city">Toshkent shahri</span> · <a href="https://t.me/nova_mobile_shop_bot" target="_blank" style="color:var(--green);font-weight:600;">🤖 Telegram bot</a> · <span data-i18n="footer_contact">Aloqa</span>: <a href="tel:+998900110813" style="color:var(--coral);font-weight:600;">+998 90 011 08 13</a></div>
+  <button class="admin-toggle-btn" onclick="openQrCode()">📱 QR-kod</button>
   <button id="editContactBtn" class="admin-toggle-btn" style="display:none;" onclick="openContactEditor()">✏️ Aloqani tahrirlash</button>
   <button id="adminToggle" class="admin-toggle-btn" style="display:none;" onclick="toggleAdminMode()">🔒 Admin rejimi</button>
   <button id="addPhoneBtn" class="admin-toggle-btn" style="display:none;" onclick="openAddPhoneForm()">➕ Yangi telefon qo'shish</button>
@@ -1098,6 +1105,25 @@ function renderContactFooter(){
   const el = document.getElementById('footerContact');
   if(!el) return;
   el.innerHTML = `<span data-i18n="footer_city">${contactInfo.city}</span> · <a href="${contactInfo.telegram}" target="_blank" style="color:var(--green);font-weight:600;">🤖 Telegram bot</a> · <span data-i18n="footer_contact">Aloqa</span>: <a href="tel:${contactInfo.phoneRaw}" style="color:var(--coral);font-weight:600;">${contactInfo.phone}</a>`;
+}
+
+function openQrCode(){
+  const siteUrl = window.location.origin + window.location.pathname;
+  const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(siteUrl)}&color=15-17-36&bgcolor=255-255-255`;
+  document.getElementById('modalContent').innerHTML = `
+    <h3>📱 QR-kod</h3>
+    <p class="sub">Bu kodni chop etib, do'konda yoki reklamada joylashtiring — mijozlar telefon kamerasi bilan skanerlab, saytga to'g'ridan-to'g'ri kirishadi.</p>
+    <div class="qr-code-box">
+      <img src="${qrImgUrl}" alt="QR kod" width="280" height="280">
+    </div>
+    <p class="sub" style="margin-top:10px;word-break:break-all;">${siteUrl}</p>
+    <div class="modal-actions">
+      <a href="${qrImgUrl}" download="nova-mobile-qr.png" class="btn btn-primary" style="flex:1;text-align:center;text-decoration:none;">⬇️ Yuklab olish</a>
+      <button class="btn btn-ghost" style="flex:1" id="closeQr">Yopish</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('closeQr').addEventListener('click', closeModal);
 }
 
 function openStats(){
@@ -2206,7 +2232,7 @@ function fetchMyOrders(phone){
   fetch(`${FIREBASE_DB_URL}/orders.json`)
     .then(res => res.json())
     .then(data => {
-      const all = data ? Object.values(data) : [];
+      const all = data ? Object.entries(data).map(([key, val]) => ({...val, _key: key})) : [];
       const mine = all.filter(o => o.phoneNorm === norm).sort((a,b) => new Date(b.date) - new Date(a.date));
       renderMyOrders(mine, phone);
     })
@@ -2226,9 +2252,11 @@ function renderMyOrders(orders, phone){
     document.getElementById('changeNumberLink').addEventListener('click', () => { safeSet('nova_my_phone', ''); openMyOrdersFresh(); });
     return;
   }
-  const rows = orders.map(o => {
+  const rows = orders.map((o, idx) => {
     const d = new Date(o.date);
     const dateStr = d.toLocaleDateString('uz-UZ') + " " + d.toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
+    const isDelivered = o.status === "Yetkazildi";
+    const rateBtn = (isDelivered && !o.rated) ? `<button class="rate-order-btn" data-idx="${idx}">⭐ Buyurtmani baholang</button>` : '';
     return `
       <div class="order-history-row">
         <div class="order-history-head">
@@ -2237,6 +2265,7 @@ function renderMyOrders(orders, phone){
         </div>
         <div class="order-items">${o.items.join(', ')}</div>
         <div class="order-total">${fmt(o.total)}</div>
+        ${rateBtn}
       </div>
     `;
   }).join('');
@@ -2249,6 +2278,46 @@ function renderMyOrders(orders, phone){
   `;
   document.getElementById('closeMyOrders').addEventListener('click', closeModal);
   document.getElementById('changeNumberLink').addEventListener('click', () => { safeSet('nova_my_phone', ''); openMyOrdersFresh(); });
+  document.querySelectorAll('.rate-order-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      openOrderRatingForm(orders[idx]);
+    });
+  });
+}
+
+function openOrderRatingForm(order){
+  document.getElementById('modalContent').innerHTML = `
+    <h3>⭐ Buyurtmangizni baholang</h3>
+    <p class="sub">${order.items.join(', ')}</p>
+    <div class="star-picker" id="orderStarPicker" style="justify-content:center;margin:14px 0;">
+      ${[1,2,3,4,5].map(n => `<span class="star-pick" data-val="${n}">★</span>`).join('')}
+    </div>
+    <textarea id="orderRatingText" placeholder="Xizmat haqida fikringiz (ixtiyoriy)..." class="review-textarea"></textarea>
+    <button class="btn btn-primary" style="width:100%;margin-top:10px;" id="submitOrderRating">Yuborish</button>
+  `;
+  let selectedRating = 5;
+  const starsEl = document.querySelectorAll('#orderStarPicker .star-pick');
+  const paint = (n) => starsEl.forEach(s => s.classList.toggle('active', parseInt(s.dataset.val) <= n));
+  paint(selectedRating);
+  starsEl.forEach(s => s.addEventListener('click', () => { selectedRating = parseInt(s.dataset.val); paint(selectedRating); }));
+  document.getElementById('submitOrderRating').addEventListener('click', () => {
+    const text = document.getElementById('orderRatingText').value.trim();
+    fetch(`${FIREBASE_DB_URL}/orders/${order._key}/rated.json`, {
+      method: "PUT",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(true)
+    }).then(() => {
+      // Xizmat baholarini alohida saqlaymiz (admin ko'rishi uchun)
+      fetch(`${FIREBASE_DB_URL}/serviceRatings.json`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({rating: selectedRating, text, date: new Date().toISOString(), phone: order.phone})
+      });
+      alert("Rahmat! Fikringiz uchun tashakkur.");
+      closeModal();
+    });
+  });
 }
 
 function isValidFullName(name){
