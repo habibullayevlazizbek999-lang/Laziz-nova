@@ -224,6 +224,12 @@ nav a:hover{color:var(--ink);}
 }
 .orders-link-btn:hover{border-color:var(--coral);}
 .filters{display:flex;gap:9px;flex-wrap:wrap;}
+.holiday-banner{
+  align-items:center;justify-content:center;gap:10px;
+  padding:9px 5%;font-size:13.5px;font-weight:700;color:#fff;
+  background:linear-gradient(90deg, var(--coral), var(--green));
+  text-align:center;
+}
 .discount-banner{
   background:linear-gradient(90deg, rgba(255,107,91,0.15), rgba(61,220,151,0.1));
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);
@@ -563,6 +569,7 @@ footer .f-brand .dot{color:var(--coral);}
   </div>
 </div>
 
+<div id="holidayBanner" class="holiday-banner" style="display:none;"></div>
 <header>
   <div class="logo" id="logoSecret" onclick="handleLogoClick()"><span class="dot"></span>NOVA</div>
   <nav>
@@ -2470,6 +2477,48 @@ tickDiscountTimer();
 setInterval(tickDiscountTimer, 1000);
 
 // Ish vaqti ko'rsatkichi — admin tahrirlashi mumkin, Firebase'da saqlanadi
+// ===== Mavsumiy/bayram bezaklari (sana asosida avtomatik) =====
+const HOLIDAYS = [
+  { name: "newyear", label: "🎄 Yangi yil muborak!", start: [12,25], end: [1,10], accent:"#3ddc97", accent2:"#ff5d72", emoji:"❄️" },
+  { name: "navroz",  label: "🌷 Navro'z bayrami muborak!", start: [3,15], end: [3,25], accent:"#7ed957", accent2:"#ffc857", emoji:"🌸" },
+  { name: "independence", label: "🇺🇿 Mustaqillik kuni muborak!", start: [8,25], end: [9,5], accent:"#00a99d", accent2:"#0099cc", emoji:"🎉" },
+  { name: "womensday", label: "🌷 8-Mart bayramingiz muborak!", start: [3,6], end: [3,9], accent:"#ff5d72", accent2:"#ffc857", emoji:"🌷" },
+];
+
+function isDateInRange(month, day, start, end){
+  const val = month*100 + day;
+  const startVal = start[0]*100 + start[1];
+  const endVal = end[0]*100 + end[1];
+  if(startVal <= endVal){
+    return val >= startVal && val <= endVal;
+  }
+  return val >= startVal || val <= endVal;
+}
+
+function getActiveHoliday(){
+  const now = new Date();
+  const month = now.getMonth()+1, day = now.getDate();
+  return HOLIDAYS.find(h => isDateInRange(month, day, h.start, h.end)) || null;
+}
+
+function applyHolidayTheme(){
+  const holiday = getActiveHoliday();
+  const banner = document.getElementById('holidayBanner');
+  if(!holiday){
+    if(banner) banner.style.display = "none";
+    document.documentElement.style.removeProperty('--coral');
+    document.documentElement.style.removeProperty('--green');
+    return;
+  }
+  document.documentElement.style.setProperty('--coral', holiday.accent2);
+  document.documentElement.style.setProperty('--green', holiday.accent);
+  if(banner){
+    banner.style.display = "flex";
+    banner.innerHTML = `${holiday.emoji} <span>${holiday.label}</span> ${holiday.emoji}`;
+  }
+}
+applyHolidayTheme();
+
 let workStartHour = 9;
 let workEndHour = 21;
 
