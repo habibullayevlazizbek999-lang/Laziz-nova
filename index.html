@@ -369,6 +369,13 @@ footer{
   border-top:1px solid var(--line);
 }
 footer .f-brand{font-family:'Sora';font-weight:700;color:var(--ink);font-size:15px;}
+.social-links{display:flex;gap:10px;}
+.social-link{
+  font-size:12.5px;font-weight:600;color:var(--ink-soft);padding:6px 12px;
+  border:1px solid var(--line);border-radius:999px;transition:border-color .15s, color .15s;
+}
+.social-link.instagram:hover{border-color:#e1306c;color:#e1306c;}
+.social-link.facebook:hover{border-color:#1877f2;color:#1877f2;}
 footer .f-brand .dot{color:var(--coral);}
 
 /* ===== CART DRAWER ===== */
@@ -642,6 +649,7 @@ footer .f-brand .dot{color:var(--coral);}
 <footer id="footer">
   <div class="f-brand">NOVA<span class="dot">.</span> Mobile</div>
   <div id="footerContact"><span data-i18n="footer_city">Toshkent shahri</span> · <a href="https://t.me/nova_mobile_shop_bot" target="_blank" style="color:var(--green);font-weight:600;">🤖 Telegram bot</a> · <span data-i18n="footer_contact">Aloqa</span>: <a href="tel:+998900110813" style="color:var(--coral);font-weight:600;">+998 90 011 08 13</a></div>
+  <div id="socialLinks" class="social-links"></div>
   <button class="admin-toggle-btn" onclick="openQrCode()">📱 QR-kod</button>
   <button id="editContactBtn" class="admin-toggle-btn" style="display:none;" onclick="openContactEditor()">✏️ Aloqani tahrirlash</button>
   <button id="adminToggle" class="admin-toggle-btn" style="display:none;" onclick="toggleAdminMode()">🔒 Admin rejimi</button>
@@ -1083,7 +1091,9 @@ let contactInfo = {
   phone: "+998 90 011 08 13",
   phoneRaw: "+998900110813",
   city: "Toshkent shahri",
-  telegram: "https://t.me/nova_mobile_shop_bot"
+  telegram: "https://t.me/nova_mobile_shop_bot",
+  instagram: "",
+  facebook: ""
 };
 
 function loadContactInfo(){
@@ -1095,6 +1105,8 @@ function loadContactInfo(){
       if(data.phoneRaw) contactInfo.phoneRaw = data.phoneRaw;
       if(data.city) contactInfo.city = data.city;
       if(data.telegram) contactInfo.telegram = data.telegram;
+      if(data.instagram) contactInfo.instagram = data.instagram;
+      if(data.facebook) contactInfo.facebook = data.facebook;
       renderContactFooter();
     })
     .catch(err => console.error("Aloqa ma'lumotlarini yuklashda xato:", err));
@@ -1110,8 +1122,16 @@ function saveContactInfo(){
 
 function renderContactFooter(){
   const el = document.getElementById('footerContact');
-  if(!el) return;
-  el.innerHTML = `<span data-i18n="footer_city">${contactInfo.city}</span> · <a href="${contactInfo.telegram}" target="_blank" style="color:var(--green);font-weight:600;">🤖 Telegram bot</a> · <span data-i18n="footer_contact">Aloqa</span>: <a href="tel:${contactInfo.phoneRaw}" style="color:var(--coral);font-weight:600;">${contactInfo.phone}</a>`;
+  if(el){
+    el.innerHTML = `<span data-i18n="footer_city">${contactInfo.city}</span> · <a href="${contactInfo.telegram}" target="_blank" style="color:var(--green);font-weight:600;">🤖 Telegram bot</a> · <span data-i18n="footer_contact">Aloqa</span>: <a href="tel:${contactInfo.phoneRaw}" style="color:var(--coral);font-weight:600;">${contactInfo.phone}</a>`;
+  }
+  const socialEl = document.getElementById('socialLinks');
+  if(socialEl){
+    let html = '';
+    if(contactInfo.instagram) html += `<a href="${contactInfo.instagram}" target="_blank" class="social-link instagram">📷 Instagram</a>`;
+    if(contactInfo.facebook) html += `<a href="${contactInfo.facebook}" target="_blank" class="social-link facebook">📘 Facebook</a>`;
+    socialEl.innerHTML = html;
+  }
 }
 
 function openQrCode(){
@@ -1220,6 +1240,8 @@ function openContactEditor(){
     <div class="field"><label>Shahar / manzil</label><input type="text" id="editCity" value="${contactInfo.city}"></div>
     <div class="field"><label>Telefon (ko'rinadigan)</label><input type="text" id="editPhone" value="${contactInfo.phone}" placeholder="+998 90 011 08 13"></div>
     <div class="field"><label>Telegram bot linki</label><input type="text" id="editTelegram" value="${contactInfo.telegram}" placeholder="https://t.me/username"></div>
+    <div class="field"><label>Instagram linki (ixtiyoriy)</label><input type="text" id="editInstagram" value="${contactInfo.instagram||''}" placeholder="https://instagram.com/username"></div>
+    <div class="field"><label>Facebook linki (ixtiyoriy)</label><input type="text" id="editFacebook" value="${contactInfo.facebook||''}" placeholder="https://facebook.com/pagename"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" style="flex:1" id="cancelContactEdit">Bekor qilish</button>
       <button class="btn btn-primary" style="flex:1" id="saveContactEdit">Saqlash</button>
@@ -1232,6 +1254,8 @@ function openContactEditor(){
     contactInfo.phone = document.getElementById('editPhone').value.trim() || contactInfo.phone;
     contactInfo.phoneRaw = contactInfo.phone.replace(/\s/g, '');
     contactInfo.telegram = document.getElementById('editTelegram').value.trim() || contactInfo.telegram;
+    contactInfo.instagram = document.getElementById('editInstagram').value.trim();
+    contactInfo.facebook = document.getElementById('editFacebook').value.trim();
     saveContactInfo();
     renderContactFooter();
     closeModal();
