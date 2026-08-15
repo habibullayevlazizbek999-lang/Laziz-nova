@@ -183,26 +183,60 @@ nav a:hover{color:var(--ink);}
 
 /* ===== HERO VISUAL: a real lock screen, not a gradient blob ===== */
 .hero-visual{position:relative;display:flex;justify-content:center;}
-.phone-mock{
-  width:240px;height:480px;border-radius:42px;
-  background:linear-gradient(165deg,#2B1F4D,#0C0E1F 60%);
-  border:1px solid rgba(255,255,255,0.1);
-  position:relative;overflow:hidden;
-  box-shadow:var(--shadow-lift), 0 0 80px -20px rgba(255,107,91,0.35);
-  animation:float 6s ease-in-out infinite;
-  display:flex;flex-direction:column;align-items:center;
-  padding-top:70px;color:#fff;
+.phone-frame-wrap{position:relative;animation:float 6s ease-in-out infinite;}
+.phone-frame-wrap::before{
+  /* Yon tugmalar: quvvat tugmasi */
+  content:"";position:absolute;right:-3px;top:150px;width:3px;height:70px;
+  background:linear-gradient(90deg,#2a2a3a,#1a1a26);border-radius:0 3px 3px 0;
 }
-.phone-mock::before{
+.phone-frame-wrap::after{
+  /* Yon tugmalar: ovoz tugmalari */
+  content:"";position:absolute;left:-3px;top:120px;width:3px;height:40px;
+  background:linear-gradient(90deg,#1a1a26,#2a2a3a);border-radius:3px 0 0 3px;
+  box-shadow:0 60px 0 -2px #2a2a3a;
+}
+.phone-mock{
+  width:244px;height:496px;border-radius:46px;
+  background:linear-gradient(155deg,#3a3a48,#0d0d14 45%);
+  border:1px solid rgba(255,255,255,0.14);
+  position:relative;overflow:hidden;
+  box-shadow:var(--shadow-lift), 0 0 90px -20px rgba(255,107,91,0.35), inset 0 0 0 2px rgba(0,0,0,0.4);
+  display:flex;flex-direction:column;align-items:center;
+  padding:8px;color:#fff;
+}
+.phone-screen{
+  position:relative;width:100%;height:100%;border-radius:38px;overflow:hidden;
+  background:linear-gradient(165deg,#2B1F4D,#0C0E1F 60%);
+  display:flex;flex-direction:column;align-items:center;padding-top:66px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+.phone-screen::before{
   content:"";position:absolute;inset:0;
   background:radial-gradient(circle at 25% 12%, rgba(255,107,91,0.45), transparent 50%),
              radial-gradient(circle at 80% 30%, rgba(124,108,255,0.4), transparent 50%),
              radial-gradient(circle at 60% 90%, rgba(61,220,151,0.3), transparent 50%);
   filter:blur(2px);
 }
-.phone-mock::after{
-  content:"";position:absolute;top:16px;left:50%;transform:translateX(-50%);
-  width:56px;height:6px;border-radius:4px;background:rgba(255,255,255,0.18);
+.phone-screen::after{
+  /* nozik ekran yaltirashi (glass reflection) */
+  content:"";position:absolute;top:0;left:0;width:45%;height:100%;
+  background:linear-gradient(105deg, rgba(255,255,255,0.08) 0%, transparent 30%);
+  pointer-events:none;
+}
+.dynamic-island{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  width:84px;height:26px;border-radius:16px;background:#000;
+  display:flex;align-items:center;justify-content:flex-end;padding-right:8px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05);
+  z-index:2;
+}
+.dynamic-island::before{
+  content:"";width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #4a5578, #0a0e1a 70%);
+}
+.lock-content{
+  display:flex;flex-direction:column;align-items:center;flex:1;width:100%;
+  transition:transform .5s cubic-bezier(.4,0,.2,1), opacity .4s ease;
 }
 .lock-time{font-family:'Sora';font-weight:700;font-size:52px;letter-spacing:-1px;position:relative;z-index:1;}
 .lock-date{font-size:13px;color:rgba(255,255,255,0.65);margin-top:6px;position:relative;z-index:1;}
@@ -210,7 +244,44 @@ nav a:hover{color:var(--ink);}
   margin-top:auto;margin-bottom:34px;font-size:10px;color:rgba(255,255,255,0.5);
   letter-spacing:0.4px;position:relative;z-index:1;
   text-align:center;padding:0 18px;white-space:nowrap;
+  animation:pulseHint 2s ease-in-out infinite;
 }
+@keyframes pulseHint{0%,100%{opacity:0.5;}50%{opacity:0.9;}}
+.phone-screen{cursor:pointer;}
+.phone-screen.unlocking .lock-content{transform:translateY(-40px);opacity:0;}
+
+.home-screen{
+  position:absolute;inset:0;padding-top:60px;
+  display:flex;flex-direction:column;align-items:center;
+  opacity:0;pointer-events:none;transition:opacity .4s ease .15s;
+  z-index:1;
+}
+.phone-screen.unlocking .home-screen{opacity:1;}
+.home-app-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:0 22px;width:100%;
+}
+.home-app-icon{
+  width:44px;height:44px;border-radius:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:19px;
+  opacity:0;transform:scale(0.5) translateY(10px);
+  transition:opacity .35s ease, transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.phone-screen.unlocking .home-app-icon{opacity:1;transform:scale(1) translateY(0);}
+.phone-screen.unlocking .home-app-icon:hover{transform:scale(1.12) translateY(-3px);}
+.phone-screen.unlocking .home-app-icon:active{transform:scale(0.92);}
+.home-app-icon:nth-child(1){background:linear-gradient(145deg,#ff6b5b,#e8503f);transition-delay:.05s;}
+.home-app-icon:nth-child(2){background:linear-gradient(145deg,#3ddc97,#28b87c);transition-delay:.1s;}
+.home-app-icon:nth-child(3){background:linear-gradient(145deg,#7c6cff,#5f4de0);transition-delay:.15s;}
+.home-app-icon:nth-child(4){background:linear-gradient(145deg,#ffc857,#e6a836);transition-delay:.2s;}
+.home-app-icon:nth-child(5){background:linear-gradient(145deg,#5fb8ff,#3d94e0);transition-delay:.25s;}
+.home-app-icon:nth-child(6){background:linear-gradient(145deg,#ff8fc7,#e066a3);transition-delay:.3s;}
+.home-app-icon:nth-child(7){background:linear-gradient(145deg,#4a5578,#333c56);transition-delay:.35s;}
+.home-app-icon:nth-child(8){background:linear-gradient(145deg,#3ddc97,#7c6cff);transition-delay:.4s;}
+.home-status-text{
+  margin-top:auto;margin-bottom:40px;font-size:11px;color:rgba(255,255,255,0.55);
+  opacity:0;transition:opacity .3s ease .5s;text-align:center;
+}
+.phone-screen.unlocking .home-status-text{opacity:1;}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 
 /* ===== SECTION ===== */
@@ -611,10 +682,30 @@ footer .f-brand .dot{color:var(--coral);}
     </div>
   </div>
   <div class="hero-visual">
-    <div class="phone-mock">
-      <div class="lock-time" id="lockTime">9:41</div>
-      <div class="lock-date" id="lockDate">Seshanba, 23-iyun</div>
-      <div class="lock-hint" data-i18n="hero_hint">Tepaga suring — katalogni oching</div>
+    <div class="phone-frame-wrap">
+      <div class="phone-mock">
+        <div class="phone-screen" id="phoneScreen" onclick="unlockPhone()">
+          <div class="dynamic-island"></div>
+          <div class="lock-content">
+            <div class="lock-time" id="lockTime">9:41</div>
+            <div class="lock-date" id="lockDate">Seshanba, 23-iyun</div>
+            <div class="lock-hint" data-i18n="hero_hint">Tepaga suring — katalogni oching</div>
+          </div>
+          <div class="home-screen">
+            <div class="home-app-grid">
+              <div class="home-app-icon" onclick="event.stopPropagation(); goToCatalog();" title="Katalog">📱</div>
+              <div class="home-app-icon" onclick="event.stopPropagation(); goToFavorites();" title="Sevimlilar">❤️</div>
+              <div class="home-app-icon" onclick="event.stopPropagation(); openDrawer();" title="Savatcha">🛒</div>
+              <div class="home-app-icon" onclick="event.stopPropagation(); goToTrust();" title="Kafolat">⭐</div>
+              <div class="home-app-icon" onclick="event.stopPropagation(); openMyOrders();" title="Buyurtmalarim">📦</div>
+              <div class="home-app-icon" onclick="event.stopPropagation(); openReferral();" title="Do'stni taklif qiling">🎁</div>
+              <div class="home-app-icon" onclick="event.stopPropagation(); goToFooter();" title="Aloqa">📞</div>
+              <div class="home-app-icon" onclick="event.stopPropagation(); goToCatalog();" title="Chegirmalar">🔥</div>
+            </div>
+            <div class="home-status-text">NOVA Mobile</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -628,7 +719,7 @@ footer .f-brand .dot{color:var(--coral);}
   <div class="section-head">
     <h2 data-i18n="catalog_title">Katalog</h2>
     <button class="orders-link-btn" onclick="openMyOrders()">📦 <span data-i18n="my_orders">Buyurtmalarim</span></button>
-    <button class="orders-link-btn" onclick="openReferral()">🎁 Do'stni taklif qiling</button>
+    <button class="orders-link-btn" onclick="openReferral()">🎁 <span data-i18n="referral_btn">Do'stni taklif qiling</span></button>
     <div class="filters" id="filters"></div>
     <select id="sortSelect" class="sort-select">
       <option value="default" data-i18n="sort_default">Saralash</option>
@@ -676,6 +767,52 @@ footer .f-brand .dot{color:var(--coral);}
 
 <script>
 // ===== Til (i18n) =====
+// ===== Jonli kod monitoringi (Debug Logger) =====
+const debugLogs = [];
+function dlog(message, type){
+  type = type || 'info';
+  const time = new Date().toLocaleTimeString('uz-UZ');
+  debugLogs.push({time, message, type});
+  if(debugLogs.length > 200) debugLogs.shift(); // eski loglarni tozalab boramiz
+  const logEl = document.getElementById('debugLog');
+  if(logEl){
+    const row = document.createElement('div');
+    row.className = 'debug-log-row ' + type;
+    row.innerHTML = `<span class="debug-log-time">${time}</span>${message}`;
+    logEl.appendChild(row);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  const statsEl = document.getElementById('debugStats');
+  if(statsEl) statsEl.textContent = debugLogs.length + " hodisa";
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  dlog('✅ Sahifa yuklandi, JavaScript ishga tushdi', 'success');
+});
+
+// Har bir fetch() so'rovini avtomatik kuzatib boramiz (Firebase/Telegram)
+const _originalFetch = window.fetch;
+window.fetch = function(url, options){
+  const method = (options && options.method) || 'GET';
+  let shortUrl = String(url).replace('https://', '').split('?')[0];
+  if(shortUrl.length > 60) shortUrl = shortUrl.slice(0,60) + '...';
+  dlog(`🌐 ${method} → ${shortUrl}`, 'network');
+  return _originalFetch.apply(this, arguments)
+    .then(res => {
+      dlog(`${res.ok ? '✅' : '⚠️'} Javob: ${res.status} ← ${shortUrl}`, res.ok ? 'success' : 'warn');
+      return res;
+    })
+    .catch(err => {
+      dlog(`❌ Xato: ${shortUrl} — ${err.message}`, 'error');
+      throw err;
+    });
+};
+
+// Kutilmagan JavaScript xatolarini ham ko'rsatamiz
+window.addEventListener('error', (e) => {
+  dlog(`❌ JS xato: ${e.message} (${e.filename ? e.filename.split('/').pop() : ''}:${e.lineno})`, 'error');
+});
+
 const I18N = {
   uz: {
     nav_catalog: "Katalog", nav_warranty: "Kafolat", nav_contact: "Aloqa",
@@ -711,6 +848,10 @@ const I18N = {
     detail_specs_year: "Chiqarilgan yili", detail_specs_battery: "Batareya", detail_specs_screen: "Ekran",
     detail_specs_chip: "Protsessor", detail_specs_camera: "Kamera", reviews_title: "Mijozlar sharhlari",
     new_badge: "Yangi", sale_badge: "Sale",
+    wh_open: "Hozir ochiq", wh_closed: "Hozir yopiq", wh_hours: "Ish vaqti",
+    referral_btn: "Do'stni taklif qiling",
+    cat_all: "Barchasi", cat_flagship_f: "Flagman", cat_mid_f: "O'rta toif", cat_budget_f: "Arzon",
+    fav_filter: "Sevimlilar",
   },
   ru: {
     nav_catalog: "Каталог", nav_warranty: "Гарантия", nav_contact: "Контакты",
@@ -746,6 +887,10 @@ const I18N = {
     detail_specs_year: "Год выпуска", detail_specs_battery: "Батарея", detail_specs_screen: "Экран",
     detail_specs_chip: "Процессор", detail_specs_camera: "Камера", reviews_title: "Отзывы клиентов",
     new_badge: "Новинка", sale_badge: "Скидка",
+    wh_open: "Сейчас открыто", wh_closed: "Сейчас закрыто", wh_hours: "Часы работы",
+    referral_btn: "Пригласить друга",
+    cat_all: "Все", cat_flagship_f: "Флагман", cat_mid_f: "Средний класс", cat_budget_f: "Бюджетный",
+    fav_filter: "Избранное",
   },
   en: {
     nav_catalog: "Catalog", nav_warranty: "Warranty", nav_contact: "Contact",
@@ -781,6 +926,10 @@ const I18N = {
     detail_specs_year: "Release year", detail_specs_battery: "Battery", detail_specs_screen: "Screen",
     detail_specs_chip: "Chipset", detail_specs_camera: "Camera", reviews_title: "Customer reviews",
     new_badge: "New", sale_badge: "Sale",
+    wh_open: "Open now", wh_closed: "Closed now", wh_hours: "Working hours",
+    referral_btn: "Invite a friend",
+    cat_all: "All", cat_flagship_f: "Flagship", cat_mid_f: "Mid-range", cat_budget_f: "Budget",
+    fav_filter: "Favorites",
   },
 };
 
@@ -804,6 +953,8 @@ function applyLanguage(lang){
   safeSet('nova_lang', lang);
   if(typeof renderProducts === 'function') renderProducts();
   if(typeof renderCart === 'function') renderCart();
+  if(typeof tickWorkingHours === 'function') tickWorkingHours();
+  if(typeof renderFilters === 'function') renderFilters();
 }
 
 function applyTheme(theme){
@@ -1400,17 +1551,17 @@ function phoneHTML(p, size){
 }
 
 const categories = [
-  {id:"all", label:"Barchasi"},
-  {id:"flagship", label:"Flagman"},
-  {id:"mid", label:"O'rta toif"},
-  {id:"budget", label:"Arzon"},
+  {id:"all", labelKey:"cat_all"},
+  {id:"flagship", labelKey:"cat_flagship_f"},
+  {id:"mid", labelKey:"cat_mid_f"},
+  {id:"budget", labelKey:"cat_budget_f"},
 ];
 
 // ===== TELEGRAM BOT CONFIG =====
 // 1) Telegram'da @BotFather ga yozib /newbot orqali bot yarating, TOKEN oling
 // 2) Botingizga /start yozing, keyin https://api.telegram.org/bot<TOKEN>/getUpdates orqali "chat":{"id": ...} ni topib CHAT_ID ga qo'ying
 // 3) Pastdagi ikki qatorni o'z TOKEN va CHAT_ID'ingiz bilan to'ldiring
-const TELEGRAM_BOT_TOKEN = "8778338115:AAEVlY3PB854WQphlZmQH1gmWBjBtQP_ee4";
+const TELEGRAM_BOT_TOKEN = "8778338115:AAG1B4JNP63RpPPfY8YZ6m2Iw1_giwHrNoA";
 const TELEGRAM_CHAT_ID = "7449247427";
 
 function sendOrderToTelegram(name, phone, addr, total, items, deliveryFee, promoCode, discountAmount){
@@ -1464,8 +1615,8 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
 
 function renderFilters(){
   const el = document.getElementById('filters');
-  el.innerHTML = categories.map(c => `<div class="filter-chip ${c.id===activeFilter?'active':''}" data-cat="${c.id}">${c.label}</div>`).join('')
-    + `<div class="filter-chip fav-filter ${showOnlyFavorites?'active':''}" id="favFilterChip">❤️ Sevimlilar</div>`;
+  el.innerHTML = categories.map(c => `<div class="filter-chip ${c.id===activeFilter?'active':''}" data-cat="${c.id}">${t(c.labelKey)}</div>`).join('')
+    + `<div class="filter-chip fav-filter ${showOnlyFavorites?'active':''}" id="favFilterChip">❤️ ${t('fav_filter')}</div>`;
   el.querySelectorAll('.filter-chip[data-cat]').forEach(chip => {
     chip.addEventListener('click', () => { activeFilter = chip.dataset.cat; renderFilters(); renderProducts(); });
   });
@@ -1477,6 +1628,7 @@ function renderFilters(){
 }
 
 function renderProducts(){
+  dlog(`🔄 renderProducts() ishga tushdi (${products.length} mahsulot)`, 'info');
   const grid = document.getElementById('productGrid');
   let list = activeFilter === 'all' ? products : products.filter(p => p.category === activeFilter);
   if(searchQuery){
@@ -1950,6 +2102,7 @@ function toggleAdminMode(){
           return;
         }
         notifyAdminLoginAttempt(email, true);
+        dlog(`🔓 Admin login muvaffaqiyatli: ${email}`, 'success');
         firebaseIdToken = data.idToken;
         adminMode = true;
         document.getElementById('adminToggle').textContent = "🔓 Admin rejimi: YONIQ (narxlarni bosib tahrirlang)";
@@ -1976,6 +2129,8 @@ function addToCart(id){
   const vIdx = selectedVariant[id] || 0;
   const key = id + "-" + vIdx;
   cart[key] = (cart[key] || 0) + 1;
+  const p = products.find(x => x.id === id);
+  dlog(`🛒 Savatchaga qo'shildi: ${p ? p.name : id} (${cart[key]} dona)`, 'info');
   renderCart();
   openDrawer();
 }
@@ -2575,10 +2730,10 @@ function tickWorkingHours(){
   const isOpen = h >= workStartHour && h < workEndHour;
   const editIcon = `<span class="wh-edit-btn ${adminMode ? 'visible' : ''}" id="whEditBtn">✏️</span>`;
   if(isOpen){
-    el.innerHTML = `<span class="wh-dot open"></span> Hozir ochiq · ${workStartHour}:00–${workEndHour}:00 ${editIcon}`;
+    el.innerHTML = `<span class="wh-dot open"></span> ${t('wh_open')} · ${workStartHour}:00–${workEndHour}:00 ${editIcon}`;
     el.className = "working-hours-badge open";
   } else {
-    el.innerHTML = `<span class="wh-dot closed"></span> Hozir yopiq · Ish vaqti: ${workStartHour}:00–${workEndHour}:00 ${editIcon}`;
+    el.innerHTML = `<span class="wh-dot closed"></span> ${t('wh_closed')} · ${t('wh_hours')}: ${workStartHour}:00–${workEndHour}:00 ${editIcon}`;
     el.className = "working-hours-badge closed";
   }
   const editBtn = document.getElementById('whEditBtn');
@@ -2615,6 +2770,36 @@ function openWorkingHoursEditor(){
   });
 }
 
+
+// Telefon rasmini bosganda "qulfdan chiqish" animatsiyasi va katalogga o'tish
+let phoneUnlocking = false;
+// Uy ekrani ilova belgilari uchun navigatsiya funksiyalari
+function goToCatalog(){
+  document.getElementById('katalog').scrollIntoView({behavior:'smooth'});
+}
+function goToTrust(){
+  document.getElementById('trust').scrollIntoView({behavior:'smooth'});
+}
+function goToFooter(){
+  document.getElementById('footer').scrollIntoView({behavior:'smooth'});
+}
+function goToFavorites(){
+  showOnlyFavorites = true;
+  renderFilters();
+  renderProducts();
+  document.getElementById('katalog').scrollIntoView({behavior:'smooth'});
+}
+
+function unlockPhone(){
+  if(phoneUnlocking) return;
+  phoneUnlocking = true;
+  const screen = document.getElementById('phoneScreen');
+  screen.classList.add('unlocking');
+  setTimeout(() => {
+    screen.classList.remove('unlocking');
+    phoneUnlocking = false;
+  }, 2200);
+}
 
 function tickClock(){
   const now = new Date();
