@@ -678,6 +678,10 @@ footer .f-brand .dot{color:var(--coral);}
 // ===== Til (i18n) =====
 // ===== Jonli kod monitoringi (Debug Logger) =====
 const debugLogs = [];
+// Ish vaqti o'zgaruvchilari — erta e'lon qilinadi, chunki applyLanguage() ularga murojaat qiladi
+let workStartHour = 9;
+let workEndHour = 21;
+
 function dlog(message, type){
   type = type || 'info';
   const time = new Date().toLocaleTimeString('uz-UZ');
@@ -2606,9 +2610,6 @@ function applyHolidayTheme(){
   }
 }
 applyHolidayTheme();
-
-let workStartHour = 9;
-let workEndHour = 21;
 
 function loadWorkingHours(){
   return fetch(`${FIREBASE_DB_URL}/workingHours.json`)
