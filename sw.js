@@ -1,4 +1,4 @@
-const CACHE_NAME = "nova-mobile-v1";
+const CACHE_NAME = "nova-mobile-v2"; // versiya oshirildi — eski keshni avtomatik tozalaydi
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -11,7 +11,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
-  self.skipWaiting();
+  self.skipWaiting(); // yangi Service Worker darhol faollashadi
 });
 
 self.addEventListener("activate", (event) => {
@@ -20,7 +20,7 @@ self.addEventListener("activate", (event) => {
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
-  self.clients.claim();
+  self.clients.claim(); // ochiq turgan sahifalarni ham darhol yangi versiyaga o'tkazadi
 });
 
 self.addEventListener("fetch", (event) => {
@@ -29,14 +29,15 @@ self.addEventListener("fetch", (event) => {
   if (event.request.url.includes("firebaseio.com")) return;
   if (event.request.url.includes("api.telegram.org")) return;
 
+  // TARMOQ-BIRINCHI: har doim internetdan eng yangi holatni olishga harakat qiladi.
+  // Faqat internet ishlamasa (masalan offline), keshdagi eski nusxani ko'rsatadi.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        return caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, response.clone());
-          return response;
-        });
-      }).catch(() => cached);
-    })
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
